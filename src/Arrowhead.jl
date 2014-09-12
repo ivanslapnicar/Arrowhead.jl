@@ -1,5 +1,5 @@
 module Arrowhead
-
-# package code goes here
-
+using DoubleDouble
+include("arrowhead1.jl")
+include("arrowhead3.jl")
 end # module
