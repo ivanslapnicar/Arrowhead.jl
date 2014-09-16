@@ -41,8 +41,8 @@ or the preprint
 
 [byrne2014]: https://github.com/simonbyrne/DoubleDouble.jl
 
-[jiahao][https://github.com/jiahao]
-[andreasnoack][https://github.com/andreasnoack]
-[jakebolewski][https://github.com/jakebolewski]
-[simonbyrne][https://github.com/simonbyrne]
+[jiahao]: https://github.com/jiahao
+[andreasnoack]: https://github.com/andreasnoack
+[jakebolewski]: https://github.com/jakebolewski
+[simonbyrne]: https://github.com/simonbyrne
 
