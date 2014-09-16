@@ -15,12 +15,11 @@ The file `arrowhead3.jl` contains routines to generate random symmetric arrowhea
 
 #### In Progress
 
-Computational and driver routines for DPR1 matrices are in preparation.
+Julia version of computational and driver routines for DPR1 matrices are in preparation.
 
 ### Authors
 
-The original routines referenced in [1] are written by Ivan Slapnicar and Nevena Jakovcevic Stor. 
-This version of Julia routines is written by Ivan Slapnicar during visit to MIT.
+The routines were developed and analysed by [Jakovcevic Stor, Barlow and Slapnicar (2013)][JSB2013] (see also the [preprint][JSB2013a] and [Jakovcevic Stor, Barlow and Slapnicar (2014)][JSB2013]. The Matlab version of the routines used in the papers are written Ivan Slapnicar and Nevena Jakovcevic Stor. This version of Julia routines is written by Ivan Slapnicar during visit to MIT.
 
 Double the working precision is implemeted by using routines by [T. J. Dekker (1971)][dekker1971] from the package [DoubleDouble][byrne2014] by Simon Byrne.
 
@@ -31,13 +30,11 @@ I would like to acknowledge highly appreciated help and advice from [Jiahao Chen
 
 ### References
 
-[1] Nevena Jakovcevic Stor, Ivan Slapnicar and Jesse L. Barlow, *Accurate eigenvalue decomposition of real symmetric arrowhead matrices and applications*, Linear Algebra and its Applications, to appear, DOI: 10.1016/j.laa.2013.10.007
+[JSB2013]: http://www.sciencedirect.com/science/article/pii/S0024379513006265 "Nevena Jakovcevic Stor, Ivan Slapnicar and Jesse L. Barlow, 'Accurate eigenvalue decomposition of real symmetric arrowhead matrices and applications', Linear Algebra and its Applications, to appear, DOI: 10.1016/j.laa.2013.10.007"
 
-or the preprint
+[JSB2013a]: http://arxiv.org/abs/1302.7203 "Nevena Jakovcevic Stor, Ivan Slapnicar and Jesse L. Barlow, 'Accurate eigenvalue decomposition of arrowhead matrices and applications', arXiv:1302.7203v3"
 
-[2] Nevena Jakovcevic Stor, Ivan Slapnicar and Jesse L. Barlow, *Accurate eigenvalue decomposition of arrowhead matrices and applications*, arXiv:1302.7203v3
-
-[3] Nevena Jakovcevic Stor, Ivan Slapnicar and Jesse L. Barlow, *Forward stable eigenvalue decomposition of rank-one modifications of diagonal matrices*, submitted.
+[JSB2014]: "Nevena Jakovcevic Stor, Ivan Slapnicar and Jesse L. Barlow, 'Forward stable eigenvalue decomposition of rank-one modifications of diagonal matrices', submitted"
 
 [dekker1971]: http://link.springer.com/article/10.1007%2FBF01397083  "T.J. Dekker (1971) 'A floating-point technique for extending the available precision', Numerische Mathematik, Volume 18, Issue 3, pp 224-242"
 
