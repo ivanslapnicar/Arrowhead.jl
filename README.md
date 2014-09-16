@@ -9,9 +9,9 @@ Eigenvalues are computed to almost full relative accuracy.  Eigenvectors are com
 
 ### Contents
 
-The file `arrowhead1.jl` contains definitions of types `SymArrow` (arrowhead) and `SymDPR1`. Full matrces are accessible with the command `full(A)`.
+The file `arrowhead1.jl`: contains definitions of types `SymArrow` (arrowhead) and `SymDPR1`. Full matrces are accessible with the command `full(A)`.
 
-Double the working precision is implemeted by using routines by [T. J. Dekker (1971)][dekker1971] implemented in the package [DoubleDouble][byrne2014] by Simon Byrne.
+The file `arrowhead3.jl` contains routines to generate random symmetric arrowhead and DPR1 matrices, ` GenSymArrow` and `GenSymDPR1`, respectively, three routines called `invA` which compute various inverses, two routine called `bisect` which compute outer eigenvalues of `SymArrow` and `SymDPR1` matrices, main computational routine `aheig` which computes k-th eigenpair of `SymArrow`, and  driver routine `aheigall` which conmputes all eigenvalues and eigenvactrors of a `SymArrow`.
 
 #### In Progress
 
@@ -21,6 +21,8 @@ Computational and driver routines for DPR1 matrices are in preparation.
 
 The original routines referenced in [1] are written by Ivan Slapnicar and Nevena Jakovcevic Stor. 
 This version of Julia routines is written by Ivan Slapnicar during visit to MIT.
+
+Double the working precision is implemeted by using routines by [T. J. Dekker (1971)][dekker1971] from the package [DoubleDouble][byrne2014] by Simon Byrne.
 
 ### Thanks
 
