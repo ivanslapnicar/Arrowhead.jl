@@ -11,7 +11,7 @@ Eigenvalues are computed to almost full relative accuracy.  Eigenvectors are com
 
 The file `arrowhead1.jl`: contains definitions of types `SymArrow` (arrowhead) and `SymDPR1`. Full matrces are accessible with the command `full(A)`.
 
-The file `arrowhead3.jl` contains routines to generate random symmetric arrowhead and DPR1 matrices, ` GenSymArrow` and `GenSymDPR1`, respectively, three routines called `invA` which compute various inverses, two routine called `bisect` which compute outer eigenvalues of `SymArrow` and `SymDPR1` matrices, main computational routine `aheig` which computes the k-th eigenpair of a `SymArrow`, and thedriver routine `aheigall` which computes all eigenvalues and eigenvectors of a `SymArrow`.
+The file `arrowhead3.jl` contains routines to generate random symmetric arrowhead and DPR1 matrices, ` GenSymArrow` and `GenSymDPR1`, respectively, three routines called `invA` which compute various inverses, two routine called `bisect` which compute outer eigenvalues of _SymArrow_ and _SymDPR1_ matrices, main computational routine `aheig` which computes the k-th eigenpair of a _SymArrow_, and thedriver routine `aheigall` which computes all eigenvalues and eigenvectors of a _SymArrow_.
 
 #### In Progress
 
