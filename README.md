@@ -1,1 +1,40 @@
-# Arrowhead
+## Arrowhead and Diagonal-plus-rank-one Eigenvalue Solvers
+
+### Basics
+
+The package contains routines for forward stable algorithms which compute all eigenvalues and eigenvactors of a real symmetric arrowhead matrices and matrices which are a rank-one modification of diagonal matrices (DPR1). The algorithms and their analysis are given in the references.
+
+Eigenvalues are computed to almost full relative accuracy.  Eigenvectors are computed entrywise to almost full accuracy, so they are automatically mutually orthogonal.The algorithms are based on a shift-and-invert approach.Only a single element of the inverse of the shifted matrix eventually needs to becomputed with double the working precision.
+
+
+### Contents
+
+The file `arrowhead1.jl` contains definitions of types `SymArrow` (arrowhead) and `SymDPR1`. Full matrces are accessible with the command `full(A)`.
+
+Double the working precision is implemeted by using routines by [T. J. Dekker (1971)][dekker1971] implemented in the package `DoubleDouble.jl` by Simon Byrne.
+https://github.com/simonbyrne/DoubleDouble.jl
+
+#### In Progress
+
+The routines for DPR1 matrices are in preparation.
+
+### Authors
+
+The original routines referenced in [1] are written by Ivan Slapnicar and Nevena Jakovcevic Stor. 
+This version of Julia routines is written by Ivan Slapnicar during visit to MIT.
+
+### Thanks
+
+
+
+### References
+
+[1] Nevena Jakovcevic Stor, Ivan Slapnicar and Jesse L. Barlow, *Accurate eigenvalue decomposition of real symmetric arrowhead matrices and applications*, Linear Algebra and its Applications, to appear, DOI: 10.1016/j.laa.2013.10.007
+
+or the preprint
+
+[2] Nevena Jakovcevic Stor, Ivan Slapnicar and Jesse L. Barlow, *Accurate eigenvalue decomposition of arrowhead matrices and applications*, arXiv:1302.7203v3
+
+[3] Nevena Jakovcevic Stor, Ivan Slapnicar and Jesse L. Barlow, *Forward stable eigenvalue decomposition of rank-one modifications of diagonal matrices*, submitted.
+
+[dekker1971]: http://link.springer.com/article/10.1007%2FBF01397083  "T.J. Dekker (1971) 'A floating-point technique for extending the available precision', Numerische Mathematik, Volume 18, Issue 3, pp 224-242"
