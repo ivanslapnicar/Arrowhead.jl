@@ -25,7 +25,7 @@ Double the working precision is implemeted by using routines by [T. J. Dekker (1
 
 ### Thanks
 
-I would like to acknowledge highly appreciated help and advice from [Jiahao Chen][jiahao], [Andreas Noack][andreasnoack], [Jake Bolewski][jakebolewski] and [Simon Byrne][simonbyrne].  
+Highly appreciated help and advice came from [Jiahao Chen][jiahao], [Andreas Noack][andreasnoack], [Jake Bolewski][jakebolewski] and [Simon Byrne][simonbyrne].  
 
 
 [JSB2013]: http://www.sciencedirect.com/science/article/pii/S0024379513006265 "Nevena Jakovcevic Stor, Ivan Slapnicar and Jesse L. Barlow, 'Accurate eigenvalue decomposition of real symmetric arrowhead matrices and applications', Linear Algebra and its Applications, to appear, DOI: 10.1016/j.laa.2013.10.007"
