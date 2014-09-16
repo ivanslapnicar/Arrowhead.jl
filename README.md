@@ -19,7 +19,7 @@ Julia version of computational and driver routines for DPR1 matrices are in prep
 
 ### Authors
 
-The routines were developed and analysed by [Jakovcevic Stor, Barlow and Slapnicar (2013)][JSB2013] (see also the [preprint][JSB2013a] and [Jakovcevic Stor, Barlow and Slapnicar (2014)][JSB2013]. The Matlab version of the routines used in the papers are written Ivan Slapnicar and Nevena Jakovcevic Stor. This version of Julia routines is written by Ivan Slapnicar during visit to MIT.
+The routines were developed and analysed by [Jakovcevic Stor, Barlow and Slapnicar (2013)][JSB2013] (see also the [preprint][JSB2013a] and [Jakovcevic Stor, Barlow and Slapnicar (2014)][JSB2014]. The Matlab version of the routines used in the papers are written Ivan Slapnicar and Nevena Jakovcevic Stor. This version of Julia routines is written by Ivan Slapnicar during visit to MIT.
 
 Double the working precision is implemeted by using routines by [T. J. Dekker (1971)][dekker1971] from the package [DoubleDouble][byrne2014] by Simon Byrne.
 
