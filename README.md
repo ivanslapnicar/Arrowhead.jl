@@ -11,8 +11,7 @@ Eigenvalues are computed to almost full relative accuracy.  Eigenvectors are com
 
 The file `arrowhead1.jl` contains definitions of types `SymArrow` (arrowhead) and `SymDPR1`. Full matrces are accessible with the command `full(A)`.
 
-Double the working precision is implemeted by using routines by [T. J. Dekker (1971)][dekker1971] implemented in the package `DoubleDouble.jl` by Simon Byrne.
-https://github.com/simonbyrne/DoubleDouble.jl
+Double the working precision is implemeted by using routines by [T. J. Dekker (1971)][dekker1971] implemented in the package [DoubleDouble][byrne2014] by Simon Byrne.
 
 #### In Progress
 
@@ -38,3 +37,6 @@ or the preprint
 [3] Nevena Jakovcevic Stor, Ivan Slapnicar and Jesse L. Barlow, *Forward stable eigenvalue decomposition of rank-one modifications of diagonal matrices*, submitted.
 
 [dekker1971]: http://link.springer.com/article/10.1007%2FBF01397083  "T.J. Dekker (1971) 'A floating-point technique for extending the available precision', Numerische Mathematik, Volume 18, Issue 3, pp 224-242"
+
+[byrne2014]: https://github.com/simonbyrne/DoubleDouble.jl
+
