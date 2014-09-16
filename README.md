@@ -1,5 +1,7 @@
 ## Arrowhead and Diagonal-plus-rank-one Eigenvalue Solvers
 
+[![Build Status](https://travis-ci.org/ivanslapnicar/Arrowhead.jl.svg?branch=master)](https://travis-ci.org/ivanslapnicar/Arrowhead.jl?branch=master)
+
 ### Basics
 
 The package contains routines for forward stable algorithms which compute all eigenvalues and eigenvactors of a real symmetric arrowhead matrices and matrices which are a rank-one modification of diagonal matrices (DPR1). The algorithms and their analysis are given in the references.
