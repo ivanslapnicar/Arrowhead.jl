@@ -15,7 +15,7 @@ Double the working precision is implemeted by using routines by [T. J. Dekker (1
 
 #### In Progress
 
-The routines for DPR1 matrices are in preparation.
+Computational and driver routines for DPR1 matrices are in preparation.
 
 ### Authors
 
@@ -24,6 +24,7 @@ This version of Julia routines is written by Ivan Slapnicar during visit to MIT.
 
 ### Thanks
 
+I would like to acknowledge highly appreciated help and advice from [Jiahao Chen][jiahao], [Andreas Noack][andreasnoack], [Jake Bolewski][jakebolewski] and [Simon Byrne][simonbyrne].  
 
 
 ### References
@@ -39,4 +40,9 @@ or the preprint
 [dekker1971]: http://link.springer.com/article/10.1007%2FBF01397083  "T.J. Dekker (1971) 'A floating-point technique for extending the available precision', Numerische Mathematik, Volume 18, Issue 3, pp 224-242"
 
 [byrne2014]: https://github.com/simonbyrne/DoubleDouble.jl
+
+[jiahao][https://github.com/jiahao]
+[andreasnoack][https://github.com/andreasnoack]
+[jakebolewski][https://github.com/jakebolewski]
+[simonbyrne][https://github.com/simonbyrne]
 
