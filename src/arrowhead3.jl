@@ -200,7 +200,7 @@ function invA{T}(A::SymArrow{T}, shift::Double)
 # COMPUTES: inverse of the shifted SymArrow A, inv(A-shift*I), which is a SymDPR1
 # here shift is Double so it uses Double to compute everything 
 # RETURNS: SymDPR1(D1,u1,rho), Qout
-# Qout = 1 / 0 - Double was / was not used 
+# Qout = 1 on exit meaning Double was used 
 
 n=length(A.D)
 D=Array(Double,n+1)

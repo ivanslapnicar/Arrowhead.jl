@@ -84,80 +84,56 @@ SymArrow(D,z,b,i),Kb,Kz,Qout
 end # invA
 
 
-#=
+function invA{T}(A::SymDPR1{T}, shift::Float64, tolr::Float64)
 
-function invA{T}(A::SymArrow{T}, shift::Float64, tolr::Float64)
-
-# COMPUTES: inverse of the shifted SymArrow A, inv(A-shift*I) which is SymDPR1
-# uses DoubleDouble to compute rho accurately, if needed. 
+# COMPUTES: inverse of the shifted SymDPR1 A = diagm(A.D)+A.r*A.u*A.u', 
+# inv(A-shift*I) = D + rho*u*u', shift!=A.D[i], which is again a SymDPR1
+# uses DoubleDouble to compute A.r accurately, if needed. 
 # tolr is tolerance, usually 1e3,  0.0 forces Double, 1e50 would never use it
 # RETURNS: SymDPR1(D,u,rho), Krho, Qout
-# Krho - condition Krho, Qout = 1 / 0 - Double was / was not used 
+# Krho - condition Krho, Qout = 1 / 0 - Double was / was not used
 
 n=length(A.D)
-D=Array(T,n+1)
-u=Array(T,n+1)
+D=Array(T,n)
+u=Array(T,n)
 
-# Ds=A.D-shift
-
-# D=[1./Ds[1:A.i-1];0.0;1./Ds[A.i:end]];
-# u=[A.z[1:A.i-1]./Ds[1:A.i-1];-1.0;A.z[A.i:end]./Ds[A.i:end]];
-
-for k=1:A.i-1
+for k=1:n
    D[k]=one(T)/(A.D[k]-shift)
-   u[k]=A.z[k]*D[k]
-end
-D[A.i]=zero(T)
-u[A.i]=-one(T)
-for k=A.i:n
-   D[k+1]=one(T)/(A.D[k]-shift)
-   u[k+1]=A.z[k]*D[k+1]
+   u[k]=A.u[k]*D[k]
 end
 
-# compute rho and Krho
+# compute gamma and Kgamma
 #--- compute the sum in a plain loop
 
-a=A.a-shift
 P=zero(T)
 Q=zero(T)
 Qout=0
 
-for k=1:A.i-1
-   D[k]>0.0 ? P=P+A.z[k]^2*D[k] : Q=Q+A.z[k]^2*D[k]
-end
-for k=A.i:n
-   D[k+1]>0.0 ? P=P+A.z[k]^2*D[k+1] : Q=Q+A.z[k]^2*D[k+1]
+for k=1:n
+   D[k]>0.0 ? P=P+A.u[k]^2*D[k] : Q=Q+A.u[k]^2*D[k]
 end
 
-a<0 ? P=P-a : Q=Q-a
+A.r>0 ? P=P+one(T)/A.r : Q=Q+one(T)/A.r
 
 # Condition of rho
 Krho=(P-Q)/abs(P+Q)
 
-
-if Krho<tolr
-   rho=-1.0/(P+Q)
+if Krho < tolr
+   rho=-one(T)/(P+Q)
 
 else  # recompute in Double
    Qout=1
    Pd,Qd=map(Double,(0.0,0.0))
    shiftd=Double(shift)
-   ad=Double(A.a)-shiftd
-#   Dd=[Double(A.D[k])-shiftd for k=1:length(A.D) ] 
-#   Dd=map(Double,A.D)-shiftd
-   for k=1:A.i-1
-      D[k]>0.0 ? Pd=Pd+Double(A.z[k])^2/(Double(A.D[k])-shiftd) : Qd=Qd+Double(A.z[k])^2/(Double(A.D[k])-shiftd)
-   end
-   for k=A.i:n
-      D[k+1]>0.0 ? Pd=Pd+Double(A.z[k])^2/(Double(A.D[k])-shiftd) : Qd=Qd+Double(A.z[k])^2/(Double(A.D[k])-shiftd)
+
+   for k=1:n
+      D[k]>0.0 ? Pd=Pd+Double(A.u[k])^2/(Double(A.D[k])-shiftd) : Qd=Qd+Double(A.u[k])^2/(Double(A.D[k])-shiftd)
    end
 
-   # for k=1:length(A.D)
-   #    Dd[k].hi>0.0 ? Pd=Pd+Double(A.z[k])^2/Dd[k] : Qd=Qd+Double(A.z[k])^2/Dd[k]
-   # end
-   ad.hi+ad.lo<0 ? Pd=Pd-ad : Qd=Qd-ad
+   A.r > 0 ?   Pd+=Double(1.0)/Double(A.r)  : Qd+=Double(1.0)/Double(A.r)
    r=Double(1.0)/(Pd+Qd)
    rho=-(r.hi+r.lo)
+
 end
 
 # returns the following
@@ -165,100 +141,70 @@ SymDPR1(D,u,rho), Krho, Qout
 
 end # invA
 
-function invA{T}(A::SymArrow{T}, shift::Double)
 
-# COMPUTES: inverse of the shifted SymArrow A, inv(A-shift*I), which is a SymDPR1
-# here shift is Double so it uses Double to compute everything 
-# RETURNS: SymDPR1(D1,u1,rho), Qout
-# Qout = 1 / 0 - Double was / was not used 
+function invA{T}(A::SymDPR1{T}, shift::Double)
+
+# COMPUTES: inverse of the shifted SymDPR1 A = diagm(A.D)+A.r*A.u*A.u', 
+# inv(A-shift*I) = D + rho*u*u', shift!=A.D[i], which is again a SymDPR1
+# here shift is Double so it uses Double to compute everything
+# RETURNS: SymDPR1(D,u,rho), Qout
+# Qout = 1 on exit meaning Double was used
 
 n=length(A.D)
-D=Array(Double,n+1)
-u=Array(Double,n+1)
+D=Array(Double,n)
+u=Array(Double,n)
 
-# D[1:n]=map(Double,A.D)-shift
 for k=1:n
    D[k]=Double(A.D[k])-shift
 end
 
-u[1:n]=map(Double,A.z)
-a=map(Double,A.a)-shift
-i=A.i
+
+u=map(Double,A.u)
 
 oned=Double(1.0)
 zerod=Double(0.0)
 
-
-# Ds=A.D-shift
-# D=[1./Ds[1:A.i-1];0.0;1./Ds[A.i:end]];
-# u=[A.z[1:A.i-1]./Ds[1:A.i-1];-1.0;A.z[A.i:end]./Ds[A.i:end]];
-
-for k=1:i-1
-#   tmp=Double(A.D[k])-shift
-#    D[k]=oned/(Double(A.D[k])-shift)
+for k=1:n
    u[k]=u[k]/D[k]  
    D[k]=oned/D[k]
-#   u[k]=Double(A.z[k])/tmp # *D[k]
 end
 
-for k=i:n
-   u[k+1]=u[k]/D[k]
-   D[k+1]=oned/D[k+1]  
-   # D[k+1]=oned/(Double(A.D[k])-shift)
-   # u[k+1]=Double(A.z[k])*D[k+1]
-end
 
-D[i]=zerod
-u[i]=Double(-1.0)
-
-# D=[Double(1.0)./D1[1:A.i-1];Double(0.0);Double(1.0)./D1[A.i:end]];
-# u=[z1[1:A.i-1]./D1[1:A.i-1];Double(-1.0);z1[A.i:end]./D1[A.i:end]];
-
-# compute rho and Krho
-#--- compute the sum in a plain loop
+# compute rho
+# compute the sum in a plain loop
 
 P,Q=zerod,zerod
 Qout=1
 
-for k=1:i-1
-   # D[k].hi+D[k].lo > 0.0  # .lo cannot change sign, I think
-   # D[k].hi > 0.0 ? P=P+Double(A.z[k])^2*D[k] : Q=Q+Double(A.z[k])^2*D[k]
-   D[k].hi > 0.0 ? P=P+Double(A.z[k])*u[k] : Q=Q+Double(A.z[k])*u[k]
-end
-for k=i:n
-   D[k+1].hi >0.0 ? P=P+Double(A.z[k])*u[k+1] : Q=Q+Double(A.z[k])*u[k+1]
+for k=1:n
+   D[k].hi > 0.0 ? P=P+Double(A.u[k])*u[k] : Q=Q+Double(A.u[k])*u[k]
 end
 
-a.hi+a.lo<0.0  ? P=P-a : Q=Q-a
+A.r > 0 ?   P+=Double(1.0)/Double(A.r)  : Q+=Double(1.0)/Double(A.r)
+
 r=oned/(P+Q)
-
-# for k=1:length(A.D)
-#    D1[k].hi+D1[k].lo>0.0 ? P=P+z1[k]^2/D1[k] : Q=Q+z1[k]^2/D1[k]
-# end
-
 rho=-(r.hi+r.lo)
 
 # returns the following
-D1=Array(T,n+1)
-u1=Array(T,n+1)
-for k=1:n+1
+# SymDPR1(T[x.hi+x.lo for x=D],T[x.hi+x.lo for x=u],rho), Qout
+
+D1=Array(T,n)
+u1=Array(T,n)
+
+for k=1:n
    D1[k]=D[k].hi+D[k].lo
-end
-for k=1:n+1
    u1[k]=u[k].hi+u[k].lo
 end
-
-# SymDPR1(T[x.hi+x.lo for x=D],T[x.hi+x.lo for x=u],rho), Qout
 
 SymDPR1(D1,u1,rho), Qout
 
 end # invA
 
 
-function  aheig( A::SymArrow,k::Integer,tols::Vector{Float64})
+function  dpr1eig( A::SymDPR1,k::Integer,tols::Vector{Float64})
 
-# COMPUTES: k-th eigenpair of an ordered irreducible SymArrow
-# A = [diag (D) z; z' alpha]
+# COMPUTES: k-th eigenpair of an ordered irreducible SymDPR1 
+# A = diagm(A.D)+A.r*A.u*A.u', A.r > 0
 # tols=[tolb,tolz,tolnu,tolrho,tollambda] = [1e3,10.0*n,1e3,1e3,1e3]
 # RETURNS: lambda, v, Sind, Kb, Kz, Knu, Krho, Qout
 # lambda - k-th eigenvalue in descending order
@@ -266,11 +212,8 @@ function  aheig( A::SymArrow,k::Integer,tols::Vector{Float64})
 # Kb, Kz, Knu, Krho - condition numbers
 # Qout = 1 / 0 - Double was / was not used 
 
-# If Qout>0, quad precision was used
-# i was the shift index
-
 # Set the dimension
-n = length(A.D) + 1
+n = length(A.D)
 
 # Set all conditions initially to zero
 Kb,Kz,Knu,Krho=0.0,0.0,0.0,0.0
@@ -284,22 +227,12 @@ v=zeros(n)
 
 if k == 1 
    sigma,i,side = A.D[1],1,'R' 
-elseif k==n 
-   sigma,i,side = A.D[n-1],n-1,'L'
 else
 # Interior eigenvalues (k in (2,...n-1) ):
    Dtemp = A.D-A.D[k]
-   atemp = A.a-A.D[k]
    middle = Dtemp[k-1]/2.0
-   Fmiddle = (atemp-middle)-sum(A.z.^2./(Dtemp-middle))
-   # middle=(A.D[k-1]-A.D[k])/2.0
-   # Fmiddle=0.0
-   # for l=1:n-1
-   #     Fmiddle+=A.z[l]^2/((A.D[l]-A.D[k])-middle)
-   # end
-   # Fmiddle=((A.a-A.D[k])-middle)-Fmiddle
-   # @show Fmiddle
-   sigma,i,side = Fmiddle < 0.0 ? (A.D[k],k,'R') : (A.D[k-1],k-1,'L')
+   Fmiddle = 1.0+sum(A.u.^2./(Dtemp-middle))
+   sigma,i,side = Fmiddle > 0.0 ? (A.D[k],k,'R') : (A.D[k-1],k-1,'L')
 end
 
 # Compute the inverse of the shifted matrix, A_i^(-1), Kb and Kz
@@ -315,7 +248,7 @@ nu = bisect( Ainv,side )
 
 if abs(nu)==Inf
 # this is nonstandard
-    # Deflation in aheig (nu=Inf)
+    # Deflation in dpr1eig (nu=Inf)
     v[i]=1.0
     lambda=sigma
 else
@@ -332,7 +265,7 @@ else
     if Knu<tols[3]
         # Accuracy is fine, compute the eigenvector
         mu = 1.0/nu
-        v=[ A.z./((A.D-sigma)-mu);-1.0]
+        v=[ A.u./((A.D-sigma)-mu)]
 #        for k=1:n-1
 #	   v[k] = A.z[k]/((A.D[k]-sigma)-mu)
 #        end 
@@ -361,7 +294,7 @@ else
                 v=zeros(n)
                 v[ind]=1.0;
             else
-                v=[ A.z./(D1-mu1);-1.0]
+                v=[ A.u./(D1-mu1)]
             end
             # Shift the eigenvalue back in Double
             lam = Double(1.0)/Double(nu1)+sigmav
@@ -376,7 +309,7 @@ else
             nu1= bisect(Ainv,side)
             mu1=1.0/nu1 
             # standard v
-            v=[ A.z./((A.D-sigma1)-mu1);-1.0]
+            v=[ A.u./((A.D-sigma1)-mu1)]
             # Return this - shift the eigenvalue back and normalize the vector
             lambda, v = mu1+sigma1, v/norm(v)
         end
@@ -387,7 +320,7 @@ else
     # near zero from the inverse of the original matrix (a DPR1 matrix).  
     if (abs(A.D[i])+abs(1.0/nu))/abs(lambda)>tols[5]
 
-        if k==1 & A.D[1]<0.0 | k==n & A.D[n-1]>0.0 | side=='L' & sign(A.D[i])+sign(A.D[i+1])==0 | side=='R' & sign(A.D[i])+sign(A.D[i-1])==0
+        if k==1 & A.D[1]<0.0 | side=='L' & sign(A.D[i])+sign(A.D[i+1])==0 | side=='R' & sign(A.D[i])+sign(A.D[i-1])==0
             println("Remedy 1 ")
             # Compute the inverse of the original arrowhead (DPR1)
             Ainv,Krho,Qout1 = invA(A,0.0,tols[4]) # Ainv is Float64
@@ -409,10 +342,12 @@ end
 # Return this
 lambda,v,i,Kb,Kz,Knu,Krho,Qout
 
-end # aheig
+end # dpr1eig
 
 
-function aheigall(A::SymArrow, tols::Vector{Float64})
+#=
+
+function dpr1eigall(A::SymDPR1, tols::Vector{Float64})
 
 # COMPUTES: all eigenvalues and eigenvectors of a real symmetric SymArrow 
 # A = [diag(D) z;z' alpha] (notice, here we assume A.i==n)
@@ -509,7 +444,7 @@ U=U[[isi[1:A.i-1],n0,isi[A.i:n0-1]],es]
 # Return this
 U,E,Sind,Kb,Kz,Knu,Krho,Qout
 
-end # aheigall
+end # dpr1eig
 
 =#
 
