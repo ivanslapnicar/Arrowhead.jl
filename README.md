@@ -32,8 +32,8 @@ eigenvectors of a _SymArrow_.
 The file `arrowhead4.jl` contains three routines called `invA` which compute
 various inverses of _SymDPR1_ matrices, main computational routine `dpr1eig`
 which computes the k-th eigenpair of an ordered unreduced _SymDPR1_, 
-and the driver routine `aheigall` which computes all eigenvalues and
-eigenvectors of a _SymArrow_. 
+and the driver routine `dpr1eigall` which computes all eigenvalues and
+eigenvectors of a _SymDPR1_. 
 
 #### In Progress
 
