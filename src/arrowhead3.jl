@@ -600,10 +600,11 @@ function bisect( A::SymDPR1, side::Char )
 n=length(A.D)
 # Determine the starting interval for bisection, [left; right]
 indD=sortperm(A.D,rev=true)
+
 if A.r>0.0
-    left, right = side == 'L' ? {A.D[indD[n]], A.D[indD[n-1]]} :  {A.D[indD[1]], A.D[indD[1]]+A.r*dot(A.u,A.u)}
+    left, right = side == 'L' ? (A.D[indD[n]], A.D[indD[n-1]]) :  (A.D[indD[1]], A.D[indD[1]]+A.r*dot(A.u,A.u))
 else # rho<=0
-    left, right = side == 'L' ? {A.D[indD[n]]+A.r*dot(A.u,A.u), A.D[indD[n]]} : {A.D[indD[2]], A.D[indD[1]]}
+    left, right = side == 'L' ? (A.D[indD[n]]+A.r*dot(A.u,A.u), A.D[indD[n]]) : (A.D[indD[2]], A.D[indD[1]])
 end
 
 # Bisection

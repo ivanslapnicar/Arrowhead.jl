@@ -226,12 +226,12 @@ v=zeros(n)
 # Exterior eigenvalues (k = 1 or k = n):
 
 if k == 1 
-   sigma,i,side = A.D[1],1,'R' 
+   sigma,i,side = A.D[1],1,'R'
 else
 # Interior eigenvalues (k in (2,...n-1) ):
    Dtemp = A.D-A.D[k]
    middle = Dtemp[k-1]/2.0
-   Fmiddle = 1.0+sum(A.u.^2./(Dtemp-middle))
+   Fmiddle = 1.0+A.r*sum(A.u.^2./(Dtemp-middle))
    sigma,i,side = Fmiddle > 0.0 ? (A.D[k],k,'R') : (A.D[k-1],k-1,'L')
 end
 
@@ -345,12 +345,10 @@ lambda,v,i,Kb,Kz,Knu,Krho,Qout
 end # dpr1eig
 
 
-#=
-
 function dpr1eigall(A::SymDPR1, tols::Vector{Float64})
 
-# COMPUTES: all eigenvalues and eigenvectors of a real symmetric SymArrow 
-# A = [diag(D) z;z' alpha] (notice, here we assume A.i==n)
+# COMPUTES: all eigenvalues and eigenvectors of a real symmetric SymDPR1 
+# A = diagm(A.D)+A.r*A.u*A.u'
 # tols = [tolb,tolz,tolnu,tolrho,tollambda] = [1e3,10.0*n,1e3,1e3,1e3] or similar
 # RETURNS: U, E, Sind, Kb, Kz, Knu, Krho, Qout
 # U = eigenvectors, E = eigenvalues in decreasing order 
@@ -358,21 +356,39 @@ function dpr1eigall(A::SymDPR1, tols::Vector{Float64})
 # Kb, Kz, Knu, Krho [k] - respective conditions for the k-th eigenvalue
 # Qout[k] = 1 / 0 - Double was / was not used when computing k-th eigenvalue 
 
-n=length(A.D)+1
+n=length(A.D)
 n0=n
 
+# Checking if A.r > 0
+signr =  A.r > 0.0 ? 1.0 : -1.0 
+
 # Ordering the matrix
-is=sortperm(A.D,rev=true)
-D=A.D[is]
-z=A.z[is]
+D=signr*A.D
+is=sortperm(D,rev=true)
+D=D[is]
+z=A.u[is]
+rho=signr*A.r
+
 U=eye(n,n)
 E=zeros(n)
 Kb=zeros(n); Kz=zeros(n); Knu=zeros(n); Krho=zeros(n)
 Qout=zeros(Int,n); Sind=zeros(Int,n) 
 
-# Quick return for 1x1
+# Quick return for 1x1, this is trivial for SymArrow, not so trivial here :)
 if n==1
-    return U,A.a,Sind,Kb,Kz,Knu,Krho,Qout
+    U=1;
+    if (D==0)&((rho==0)|(z==0))
+        E=0
+    else
+        E=A.D[1]+A.r*A.u[1]^2
+        # Higher accuracy if needed
+        KD=(abs(A.D[1])+abs(A.r)*A.u[1]^2)/abs(E)
+        if KD>tols[1]
+            Ed=Double(A.D[1])+Double(A.r)*Double(A.u[1])^2
+            E=Ed.hi+Ed.lo
+        end
+    end
+    return U, E, Sind,Kb,Kz,Knu,Krho,Qout
 end
 
 #  test for deflation in z
@@ -383,13 +399,11 @@ if !isempty(z0)
    D=D[zx]
    z=z[zx]
    if isempty(z)
-      E[n]=A.a
       return U,E,Sind,Kb,Kz,Knu,Krho,Qout
    else
-      n=length(z)+1
+      n=length(z)
    end
 end
-zx=[zx;n0]
 
 #  Test for deflation in D
 g=D[1:n-2]-D[2:n-1]
@@ -415,8 +429,8 @@ if !isempty(g0)
    nn=length(gx)
    
    zxx=zx[[gx;n]]
-   for k=1:nn+1
-      E[zxx[k]],U[zxx,zxx[k]],Sind[zxx[k]],Kb[zxx[k]],Kz[zxx[k]],Knu[zxx[k]],Krho[zxx[k]],Qout[zxx[k]]=aheig(SymArrow(D[gx],z[gx],A.a,nn+1),k,tols)
+   for k=1:nn
+      E[zxx[k]],U[zxx,zxx[k]],Sind[zxx[k]],Kb[zxx[k]],Kz[zxx[k]],Knu[zxx[k]],Krho[zxx[k]],Qout[zxx[k]]=dpr1eig(SymDPR1(D[gx],z[gx],rho),k,tols)
    end
 
    for l=1:lg0
@@ -428,23 +442,24 @@ else
 
    # No deflation in D
    for k=1:n
-      E[zx[k]],U[zx,zx[k]],Sind[zx[k]],Kb[zx[k]],Kz[zx[k]],Knu[zx[k]],Krho[zx[k]],Qout[zx[k]]=aheig(SymArrow(D,z,A.a,n),k,tols)
+      E[zx[k]],U[zx,zx[k]],Sind[zx[k]],Kb[zx[k]],Kz[zx[k]],Knu[zx[k]],Krho[zx[k]],Qout[zx[k]]=dpr1eig(SymDPR1(D,z,rho),k,tols)
    end
 end
 
 # back premutation of vectors
 isi=sortperm(is)
 
-# must sort E once more 
+# change the sign if A.r was negative
+# must sort E once more
+E=signr*E 
 es=sortperm(E,rev=true)
 E=E[es]
 
-U=U[[isi[1:A.i-1],n0,isi[A.i:n0-1]],es]
+U=U[isi,es]
 
 # Return this
 U,E,Sind,Kb,Kz,Knu,Krho,Qout
 
 end # dpr1eig
 
-=#
 
