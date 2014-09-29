@@ -573,7 +573,7 @@ function ahsvdall(A::HalfArrow, tols::Vector{Float64})
         else
             
             # No deflation in D
-            @show n, zx, zxv, U, V,D,z
+            # @show n, zx, zxv, U, V,D,z
             for k=1:n
                 # V[zxv,zx[k]]
                 E[zx[k]],U[zx,zx[k]],V[zxv,zx[k]],Sind[zx[k]],Kb[zx[k]],Kz[zx[k]],Knu[zx[k]],Krho[zx[k]],Qout[zx[k]]=
@@ -581,9 +581,9 @@ function ahsvdall(A::HalfArrow, tols::Vector{Float64})
                 # if signD[zx[k]]<0.0
                 #     V[zxv,zx[k]]=-V[zxv,zx[k]]
                 # end
-                @show V[zxv,zx[k]],signD, zxv, zxv[1:end-1]
+                # @show V[zxv,zx[k]],signD, zxv, zxv[1:end-1]
                 V[zxv[1:end-1],zx[k]]=V[zxv[1:end-1],zx[k]].*signD[zxv[1:end-1]]
-                @show k,U,E,V
+                # @show k,U,E,V
             end
         end
     end

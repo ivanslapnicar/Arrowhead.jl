@@ -18,7 +18,7 @@ becomputed with double the working precision.
 
 ### Contents
 
-The file `arrowhead1.jl`: contains definitions of types `SymArrow` (arrowhead) and `SymDPR1`. Full matrces are accessible with the command `full(A)`.
+The file `arrowhead1.jl` contains definitions of types `SymArrow` (arrowhead) and `SymDPR1`. Full matrices are accessible with the command `full(A)`.
 
 The file `arrowhead3.jl` contains routines to generate random symmetric
 arrowhead and DPR1 matrices, ` GenSymArrow` and `GenSymDPR1`, respectively,
@@ -35,10 +35,16 @@ which computes the k-th eigenpair of an ordered unreduced _SymDPR1_,
 and the driver routine `dpr1eigall` which computes all eigenvalues and
 eigenvectors of a _SymDPR1_. 
 
-#### In Progress
-
-Julia versions of computational and driver routines for SVD of half-arrowhead 
-matrices are in preparation.
+The file `arrowhead5.jl` contains definition of type `HalfArrow`. 
+_HalfArrow_ is of the form _[diagm(A.D) A.z]_ where either 
+_length(A.z)=length(A.D)_
+or _length(A.z)=length(A.D)+1_, thus giving two possible different forms of
+SVD rank one update.  The file `arrowhead6.jl` contains the routine
+`doubledot`, three routines called `invA` which compute
+various inverses of _HalfArrow_ matrices, main computational routine `ahsvd`
+which computes the k-th singular value triplet _u, sigma, v_ of an ordered
+unreduced _HalfArrow_,  and the driver routine `ahsvdall` which computes all 
+singular values and vectors of a _HalfArrow_. 
 
 ### Authors
 

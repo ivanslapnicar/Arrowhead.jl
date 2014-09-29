@@ -81,7 +81,7 @@ println("\n","4th test - Example 3, p. 11 from [2], see also Ming Gu's paper","\
 
 println("\n There is one test for SVD of HalfArrow matrices")
 
-println("\n","HalfArrow with entries varyying in magnitude","\n")
-@show a=HalfArrow(sort(exp(30*(rand(8)-0.5)),rev=true),(exp(30*(rand(8)-0.5))))
-# 
-# 
+println("\n","HalfArrow with entries varying in magnitude","\n")
+@show A=HalfArrow(sort(exp(30*(rand(8)-0.5)),rev=true),(exp(30*(rand(8)-0.5))))
+@show Ua, Lambdaa, Va, Sind, Kb, Kz, Knu, Krho, Qout = ahsvdall( A, tols )
+@test norm(Ua'*Ua-eye(8))<1e-15 && norm(Va'*Va-eye(8))<1e-15 # Just test the orthogonality of the eigenvectors
