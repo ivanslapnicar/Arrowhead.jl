@@ -59,8 +59,9 @@ function inv{T}(A::HalfArrow{T},i::Integer,tols::Vector{Float64})
     # Maybe this needs more accuracy??
     # if A.z[k]^2>A.D[i]^2 for some k, then we should use (A.z[k]+A.D[i])*(A.z[k]-A.d[i]) +
     # the rest, which is sum of squares
-    a=dot(A.z,A.z)-A.D[i]^2
-    
+    # a=dot(A.z,A.z)-A.D[i]^2 # this was original formula
+    ad=doubledot([A.z;A.D[i]],[A.z;-A.D[i]])
+    a=ad.hi+ad.lo
     # compute the sum in a plain loop
     P=zero(T)
     Q=zero(T)
@@ -88,7 +89,7 @@ function inv{T}(A::HalfArrow{T},i::Integer,tols::Vector{Float64})
                             k=i+1:length(A.D)]]
         wzd=Double(A.z[i])*shiftd
         
-        ad=doubledot(A.z,A.z)-shiftd^2
+    #    ad=doubledot(A.z,A.z)-shiftd^2 # we already have this if we use doubledot above
         
         Pd,Qd=map(Double,(0.0,0.0))
         
@@ -163,9 +164,11 @@ function inv{T}(A::HalfArrow{T}, shift::Float64, tolr::Float64)
     P=zero(T)
     Q=zero(T)
     Qout=0
-    
-    a=dot(A.z,A.z)-shift^2
-    
+
+    # a=dot(A.z,A.z)-shift^2 # try with more accuracy
+    ad=doubledot([A.z;shift],[A.z;-shift])
+    a=ad.hi+ad.lo   
+
     for k=1:n
         D[k]>0.0 ? P+=z1[k]^2*D[k] : Q+=z1[k]^2*D[k]
     end
@@ -182,7 +185,7 @@ function inv{T}(A::HalfArrow{T}, shift::Float64, tolr::Float64)
         Pd,Qd=map(Double,(0.0,0.0))
         shiftd=Double(shift)
         Dd=Double{Float64}[(Double(A.D[k])+shiftd)*(Double(A.D[k])-shiftd) for k=1:n]
-        ad=doubledot(A.z,A.z)-shiftd^2
+        # ad=doubledot(A.z,A.z)-shiftd^2 # we already have this if doubledot is used above
         #   Dd=[Double(A.D[k])-shiftd for k=1:length(A.D) ] 
         #   Dd=map(Double,A.D)-shiftd
         
@@ -376,7 +379,8 @@ function  ahsvd( A::HalfArrow,k::Integer,tols::Vector{Float64})
                 # recompute sigmav more accurately according with dekker
                 sigmav=(Double(nu1)+Double(nu))/(Double(2.0)*Double(nu)*Double(nu1))+Double(sigma)^2
                 # Compute the inverse of the shifted arrowhead (DPR1)
-                Ainv,Qout1=inv(A,sqrt(sigmav)) # Ainv is Float64
+                Ainv,Qout1=inv(A,sigmav) # Ainv is Float64, here it was sqrt(sigmav)
+                
                 nu1=bisect(Ainv,side) 
                 mu1 = 1.0/nu1
                 D0=map(A.D,Double)

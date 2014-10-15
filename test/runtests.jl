@@ -6,7 +6,7 @@ using Base.Test
 println("There are four tests for arrowhead matrices, a random matrix test and three")
 println("tests from the arrowhead paper [1] (see README for details)","\n")
 
-@show tols = [1e3,1e3,1e3,1e3,1e3] # set the tolerances for aheigall
+@show tols = [1e2,1e2,1e2,1e2,1e2] # set the tolerances for aheigall
 
 println("\n","1st test - Random SymArrow matrix","\n")
 
@@ -86,4 +86,4 @@ println("\n","HalfArrow with entries varying in magnitude","\n")
 @show Ua, Lambdaa, Va, Sind, Kb, Kz, Knu, Krho, Qout = ahsvdall( A, tols )
 @show N1=norm(Ua'*Ua-eye(8))
 @show N2=norm(Va'*Va-eye(8))
-@test N1 < 1e-15 && N2 < 1e-15 # Just test the orthogonality of the eigenvectors
+@test N1 < 100.0*eps() && N2 < 100.0*eps() # Just test the orthogonality of the eigenvectors
