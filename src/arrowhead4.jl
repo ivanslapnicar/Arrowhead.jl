@@ -1,9 +1,9 @@
 #-------- Inverses of DPR1
 
-function invA{T}(A::SymDPR1{T},i::Integer,tols::Vector{Float64})
+function inv{T}(A::SymDPR1{T},i::Integer,tols::Vector{Float64})
 
     # COMPUTES: inverse of a shifted SymDPR1 matrix A=diagm(A.D)+A.r*A.u*A.u',
-    # invA(A-A.D[i]*I) which is a SymArrow.
+    # inv(A-A.D[i]*I) which is a SymArrow.
     # Uses higher precision to compute top of the arrow element accurately, if
     # needed. 
     # tols=[tolb,tolz] are tolerances, usually [1e3, 10*n]
@@ -81,10 +81,10 @@ function invA{T}(A::SymDPR1{T},i::Integer,tols::Vector{Float64})
     # return this
     SymArrow(D,z,b,i),Kb,Kz,Qout
 
-end # invA
+end # inv
 
 
-function invA{T}(A::SymDPR1{T}, shift::Float64, tolr::Float64)
+function inv{T}(A::SymDPR1{T}, shift::Float64, tolr::Float64)
 
     # COMPUTES: inverse of the shifted SymDPR1 A = diagm(A.D)+A.r*A.u*A.u', 
     # inv(A-shift*I) = D + rho*u*u', shift!=A.D[i], which is again a SymDPR1
@@ -139,10 +139,10 @@ function invA{T}(A::SymDPR1{T}, shift::Float64, tolr::Float64)
     # returns the following
     SymDPR1(D,u,rho), Krho, Qout
 
-end # invA
+end # inv
 
 
-function invA{T}(A::SymDPR1{T}, shift::Double)
+function inv{T}(A::SymDPR1{T}, shift::Double)
 
     # COMPUTES: inverse of the shifted SymDPR1 A = diagm(A.D)+A.r*A.u*A.u', 
     # inv(A-shift*I) = D + rho*u*u', shift!=A.D[i], which is again a SymDPR1
@@ -198,7 +198,7 @@ function invA{T}(A::SymDPR1{T}, shift::Double)
 
     SymDPR1(D1,u1,rho), Qout
 
-end # invA
+end # inv
 
 
 function  dpr1eig( A::SymDPR1,k::Integer,tols::Vector{Float64})
@@ -237,7 +237,7 @@ function  dpr1eig( A::SymDPR1,k::Integer,tols::Vector{Float64})
 
     # Compute the inverse of the shifted matrix, A_i^(-1), Kb and Kz
 
-    Ainv,Kb,Kz,Qout = invA(A,i,tols[1:2])
+    Ainv,Kb,Kz,Qout = inv(A,i,tols[1:2])
 
     # Compute the eigenvalue of the inverse shifted matrix
 
@@ -284,7 +284,7 @@ function  dpr1eig( A::SymDPR1,k::Integer,tols::Vector{Float64})
                 # recompute sigmav more accurately according with dekker
                 sigmav=(Double(nu1)+Double(nu))/(Double(2.0)*Double(nu)*Double(nu1))+Double(sigma)
                 # Compute the inverse of the shifted arrowhead (DPR1)
-                Ainv,Qout1=invA(A,sigmav) # Ainv is Float64
+                Ainv,Qout1=inv(A,sigmav) # Ainv is Float64
                 nu1=bisect(Ainv,side) 
                 mu1 = 1.0/nu1
                 D0=map(A.D,Double)-sigmav
@@ -302,7 +302,7 @@ function  dpr1eig( A::SymDPR1,k::Integer,tols::Vector{Float64})
                 lambda,v = lam.hi+lam.lo, v/norm(v)       
             else
                 # Compute the inverse of the shifted arrowhead (DPR1)
-                Ainv, Krho,Qout1=invA(A,sigma1,tols[4]) # Ainv is Float64
+                Ainv, Krho,Qout1=inv(A,sigma1,tols[4]) # Ainv is Float64
                 # Compute the eigenvalue by bisect for DPR1
 	        # Note: instead of bisection could use dlaed4 (need a wrapper) but
 	        # it is not faster. There norm(u)==1
@@ -324,7 +324,7 @@ function  dpr1eig( A::SymDPR1,k::Integer,tols::Vector{Float64})
                 side=='R' & sign(A.D[i])+sign(A.D[i-1])==0)
                 println("Remedy 1 ")
                 # Compute the inverse of the original arrowhead (DPR1)
-                Ainv,Krho,Qout1 = invA(A,0.0,tols[4]) # Ainv is Float64
+                Ainv,Krho,Qout1 = inv(A,0.0,tols[4]) # Ainv is Float64
                 Qout==1 && (Qout=Qout+4)
                 if abs(Ainv.r)==Inf
                     lambda=0.0

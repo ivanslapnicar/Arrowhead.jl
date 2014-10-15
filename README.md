@@ -22,14 +22,14 @@ The file `arrowhead1.jl` contains definitions of types `SymArrow` (arrowhead) an
 
 The file `arrowhead3.jl` contains routines to generate random symmetric
 arrowhead and DPR1 matrices, ` GenSymArrow` and `GenSymDPR1`, respectively,
-three routines called `invA` which compute various inverses of _SymArrow_
+three routines called `inv` which compute various inverses of _SymArrow_
 matrices, two routines called `bisect` which compute outer eigenvalues of
 _SymArrow_ and _SymDPR1_ matrices, main computational routine `aheig` which
 computes the k-th eigenpair of an ordered unreduced  _SymArrow_, 
 and the driver routine `aheigall` which computes all eigenvalues and
 eigenvectors of a _SymArrow_. 
 
-The file `arrowhead4.jl` contains three routines called `invA` which compute
+The file `arrowhead4.jl` contains three routines called `inv` which compute
 various inverses of _SymDPR1_ matrices, main computational routine `dpr1eig`
 which computes the k-th eigenpair of an ordered unreduced _SymDPR1_, 
 and the driver routine `dpr1eigall` which computes all eigenvalues and
@@ -40,7 +40,7 @@ _HalfArrow_ is of the form _[diagm(A.D) A.z]_ where either
 _length(A.z)=length(A.D)_
 or _length(A.z)=length(A.D)+1_, thus giving two possible different forms of
 SVD rank one update.  The file `arrowhead6.jl` contains the routine
-`doubledot`, three routines called `invA` which compute
+`doubledot`, three routines called `inv` which compute
 various inverses of _HalfArrow_ matrices, main computational routine `ahsvd`
 which computes the k-th singular value triplet _u, sigma, v_ of an ordered
 unreduced _HalfArrow_,  and the driver routine `ahsvdall` which computes all 

@@ -24,7 +24,7 @@ end
 
 #-------- Inverses  
 
-function invA{T}(A::HalfArrow{T},i::Integer,tols::Vector{Float64})
+function inv{T}(A::HalfArrow{T},i::Integer,tols::Vector{Float64})
 
     # COMPUTES: inverse of a SymArrow matrix B, where B=A'*A, and A =[A.D, A.z] 
     # is the HalfArrow. Here inv(B-B.D[i]*I) is again SymArrow.
@@ -118,11 +118,11 @@ function invA{T}(A::HalfArrow{T},i::Integer,tols::Vector{Float64})
     # return this
     SymArrow(D,z,b,i),Kb,Kz,Qout
     
-end # invA
+end # inv
 
 
 
-function invA{T}(A::HalfArrow{T}, shift::Float64, tolr::Float64)
+function inv{T}(A::HalfArrow{T}, shift::Float64, tolr::Float64)
     
     # COMPUTES: inverse of a SymArrow matrix B, where B=A'*A, and A =[A.D, A.z] 
     # is the HalfArrow. Here inv(B-shift^2*I) is a SymDPR1.
@@ -199,10 +199,10 @@ function invA{T}(A::HalfArrow{T}, shift::Float64, tolr::Float64)
     # returns the following
     SymDPR1(D,u,rho), Krho, Qout
     
-end # invA
+end # inv
 
 
-function invA{T}(A::HalfArrow{T}, shift::Double)
+function inv{T}(A::HalfArrow{T}, shift::Double)
     
     # COMPUTES: inverse of a SymArrow matrix B, where B=A'*A, and A =[A.D, A.z] 
     # is the HalfArrow. Here inv(B-shift^2*I) is SymDPR1.
@@ -266,7 +266,7 @@ function invA{T}(A::HalfArrow{T}, shift::Double)
     
     SymDPR1(D1,u1,rho), Qout
     
-end # invA
+end # inv
 
 
 function  ahsvd( A::HalfArrow,k::Integer,tols::Vector{Float64})
@@ -323,7 +323,7 @@ function  ahsvd( A::HalfArrow,k::Integer,tols::Vector{Float64})
     
     # Compute the inverse of the shifted matrix, (A'*A)_i^(-1), Kb and Kz
     
-    Ainv,Kb,Kz,Qout = invA(A,i,tols[1:2])
+    Ainv,Kb,Kz,Qout = inv(A,i,tols[1:2])
     
     # Compute the eigenvalue of the inverse shifted matrix
     
@@ -376,7 +376,7 @@ function  ahsvd( A::HalfArrow,k::Integer,tols::Vector{Float64})
                 # recompute sigmav more accurately according with dekker
                 sigmav=(Double(nu1)+Double(nu))/(Double(2.0)*Double(nu)*Double(nu1))+Double(sigma)^2
                 # Compute the inverse of the shifted arrowhead (DPR1)
-                Ainv,Qout1=invA(A,sqrt(sigmav)) # Ainv is Float64
+                Ainv,Qout1=inv(A,sqrt(sigmav)) # Ainv is Float64
                 nu1=bisect(Ainv,side) 
                 mu1 = 1.0/nu1
                 D0=map(A.D,Double)
@@ -406,7 +406,7 @@ function  ahsvd( A::HalfArrow,k::Integer,tols::Vector{Float64})
             else
                 # Compute the inverse of the shifted arrowhead (DPR1)
                 ssigma=sqrt(sigma1)
-                Ainv, Krho,Qout1=invA(A,ssigma,tols[4]) # Ainv is Float64
+                Ainv, Krho,Qout1=inv(A,ssigma,tols[4]) # Ainv is Float64
                 # Compute the eigenvalue by bisect for DPR1
 	        # Note: instead of bisection could use dlaed4 (need a wrapper) but
 	        # it is not faster. There norm(u)==1
@@ -439,7 +439,7 @@ function  ahsvd( A::HalfArrow,k::Integer,tols::Vector{Float64})
             # if k==1 & A.D[1]<0.0 | k==n & A.D[n-1]>0.0 | side=='L' & sign(A.D[i])+sign(A.D[i+1])==0 | side=='R' & sign(A.D[i])+sign(A.D[i-1])==0
             println("Remedy 1 ")
             # Compute the inverse of the original arrowhead (DPR1)
-            Ainv,Krho,Qout1 = invA(A,0.0,tols[4]) # Ainv is Float64
+            Ainv,Krho,Qout1 = inv(A,0.0,tols[4]) # Ainv is Float64
             Qout==1 && (Qout=Qout+4)
             if abs(Ainv.r)==Inf
                 lambda=0.0
