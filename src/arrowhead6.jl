@@ -379,7 +379,7 @@ function  ahsvd( A::HalfArrow,k::Integer,tols::Vector{Float64})
                 # recompute sigmav more accurately according with dekker
                 sigmav=(Double(nu1)+Double(nu))/(Double(2.0)*Double(nu)*Double(nu1))+Double(sigma)^2
                 # Compute the inverse of the shifted arrowhead (DPR1)
-                Ainv,Qout1=inv(A,sigmav) # Ainv is Float64, here it was sqrt(sigmav)
+                Ainv,Qout1=inv(A,sqrt(sigmav)) # Ainv is Float64, here it was sqrt(sigmav)
                 
                 nu1=bisect(Ainv,side) 
                 mu1 = 1.0/nu1
