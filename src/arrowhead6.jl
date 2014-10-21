@@ -361,7 +361,7 @@ function  ahsvd( A::HalfArrow,k::Integer,tols::Vector{Float64})
             end 
             v[n]=-1.0
             v=v/norm(v)
-            lambda=sqrt(mu+sigma^2)
+            lambda=sqrt(mu+sigma^2) # this may have errors
             u[1:n-1]=lambda*v[1:n-1]./A.D
             if length(A.z)==n 
                 u[n]=A.z[n]*v[n]/lambda
