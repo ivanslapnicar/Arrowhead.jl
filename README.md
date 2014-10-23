@@ -5,15 +5,15 @@
 ### Basics
 
 The package contains routines for forward stable algorithms which compute all
-eigenvalues and eigenvactors of a real symmetric arrowhead matrices and
+eigenvalues and eigenvectors of a real symmetric arrowhead matrices and
 matrices which are a rank-one modification of diagonal matrices (DPR1). The
 algorithms and their analysis are given in the references. 
 
 Eigenvalues are computed to almost full relative accuracy.  Eigenvectors are
 computed entrywise to almost full accuracy, so they are automatically mutually
-orthogonal.The algorithms are based on a shift-and-invert approach.Only a
+orthogonal.  The algorithms are based on a shift-and-invert approach.  Only a
 single element of the inverse of the shifted matrix eventually needs to
-becomputed with double the working precision. 
+be computed with double the working precision. 
 
 
 ### Contents
@@ -52,10 +52,10 @@ The routines were developed and analysed by [Jakovcevic Stor, Barlow and
 Slapnicar (2013)][JSB2013] (see also the [preprint][JSB2013a] and [Jakovcevic
 Stor, Barlow and Slapnicar (2014)][JSB2014]. The Matlab version of the
 routines used in the papers are written Ivan Slapnicar and Nevena Jakovcevic
-Stor. This version of Julia routines is written by Ivan Slapnicar during visit
+Stor. This version of Julia routines was written by Ivan Slapnicar during a visit
 to MIT. 
 
-Double the working precision is implemeted by using routines by 
+Double the working precision is implemented by using routines by 
 [T. J. Dekker (1971)][dekker1971] from the package [DoubleDouble][byrne2014]
 by Simon Byrne. 
 
