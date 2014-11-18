@@ -320,8 +320,8 @@ function  dpr1eig( A::SymDPR1,k::Integer,tols::Vector{Float64})
         # near zero from the inverse of the original matrix (a DPR1 matrix).  
         if (abs(A.D[i])+abs(1.0/nu))/abs(lambda)>tols[5]
 
-            if (k==1 & A.D[1]<0.0 | side=='L' & sign(A.D[i])+sign(A.D[i+1])==0 | 
-                side=='R' & sign(A.D[i])+sign(A.D[i-1])==0)
+            if (k==1 && A.D[1]<0.0 | side=='L' && sign(A.D[i])+sign(A.D[i+1])==0 | 
+                side=='R' && sign(A.D[i])+sign(A.D[i-1])==0)
                 println("Remedy 1 ")
                 # Compute the inverse of the original arrowhead (DPR1)
                 Ainv,Krho,Qout1 = inv(A,0.0,tols[4]) # Ainv is Float64
@@ -378,7 +378,7 @@ function dpr1eigall(A::SymDPR1, tols::Vector{Float64})
     # Quick return for 1x1, this is trivial for SymArrow, not so trivial here :)
     if n==1
         U=1;
-        if (D==0)&((rho==0)|(z==0))
+        if (D==0)&&((rho==0)|(z==0))
             E=0
         else
             E=A.D[1]+A.r*A.u[1]^2
