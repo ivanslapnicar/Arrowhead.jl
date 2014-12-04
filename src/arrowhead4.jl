@@ -320,7 +320,7 @@ function  dpr1eig( A::SymDPR1,k::Integer,tols::Vector{Float64})
         # near zero from the inverse of the original matrix (a DPR1 matrix).  
         if (abs(A.D[i])+abs(1.0/nu))/abs(lambda)>tols[5]
 
-            if (k==1 && A.D[1]<0.0 | side=='L' && sign(A.D[i])+sign(A.D[i+1])==0 | 
+            if (k==1 && A.D[1]<0.0 || side=='L' && sign(A.D[i])+sign(A.D[i+1])==0 ||
                 side=='R' && sign(A.D[i])+sign(A.D[i-1])==0)
                 println("Remedy 1 ")
                 # Compute the inverse of the original arrowhead (DPR1)

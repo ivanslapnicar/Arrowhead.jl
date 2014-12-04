@@ -440,7 +440,7 @@ function  ahsvd( A::HalfArrow,k::Integer,tols::Vector{Float64})
 
         if k==n && (abs(A.D[i])^2+abs(1.0/nu))/abs(lambda^2)>tols[5]
             
-            # if k==1 && A.D[1]<0.0 | k==n && A.D[n-1]>0.0 | side=='L' && sign(A.D[i])+sign(A.D[i+1])==0 | side=='R' && sign(A.D[i])+sign(A.D[i-1])==0
+            # if k==1 && A.D[1]<0.0 || k==n && A.D[n-1]>0.0 || side=='L' && sign(A.D[i])+sign(A.D[i+1])==0 || side=='R' && sign(A.D[i])+sign(A.D[i-1])==0
             println("Remedy 1 ")
             # Compute the inverse of the original arrowhead (DPR1)
             Ainv,Krho,Qout1 = inv(A,0.0,tols[4]) # Ainv is Float64
