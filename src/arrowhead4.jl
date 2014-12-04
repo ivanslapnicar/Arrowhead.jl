@@ -389,7 +389,7 @@ function dpr1eigall(A::SymDPR1, tols::Vector{Float64})
                 E=Ed.hi+Ed.lo
             end
         end
-        return U, E, Sind,Kb,Kz,Knu,Krho,Qout
+        return U, [E], Sind,Kb,Kz,Knu,Krho,Qout
     end
 
     #  test for deflation in z

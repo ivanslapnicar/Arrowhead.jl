@@ -468,7 +468,7 @@ function aheigall(A::SymArrow, tols::Vector{Float64})
 
     # Quick return for 1x1
     if n==1
-        return U,A.a,Sind,Kb,Kz,Knu,Krho,Qout
+        return U,[A.a],Sind,Kb,Kz,Knu,Krho,Qout
     end
 
     #  test for deflation in z
