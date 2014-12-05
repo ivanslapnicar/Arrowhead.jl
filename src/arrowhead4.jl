@@ -403,51 +403,52 @@ function dpr1eigall(A::SymDPR1, tols::Vector{Float64})
             # return U,E,Sind,Kb,Kz,Knu,Krho,Qout
             n=length(z)
         end
-    else 
-
-        #  Test for deflation in D
-        g=D[1:n-2]-D[2:n-1]
-        # Can play with inexact deflation
-        # g0=find(abs(g)<eps)
-        # gx=find(abs(g)>=eps)
-        # Only exact deflation !!
-        g0=find(g.==0.0)
-        gx=find(g.!=0.0)
-        if !isempty(g0)
-            # Deflation
-            Dgx=D[gx]; zgx=z[gx]
-            lg0=length(g0)
-            R=Array(Givens{Float64},lg0)
-            for l=lg0:-1:1
-                R[l]=givens(z[g0[l]],z[g0[l]+1],zx[g0[l]],zx[g0[l]+1],n0)
-                z[g0[l]]=R[l].r; z[g0[l]+1]=0.0
-                # A_mul_Bc!(U,R) # multiply R'*U later
-                E[zx[g0[l]+1]]=D[g0[l]+1]
-            end    
-            # remains
-            gx=[0;gx]+1
-            nn=length(gx)
-            
-            zxx=zx[[gx;n]]
-            for k=1:nn
-                E[zxx[k]],U[zxx,zxx[k]],Sind[zxx[k]],Kb[zxx[k]],Kz[zxx[k]],Knu[zxx[k]],Krho[zxx[k]],Qout[zxx[k]]=
-                dpr1eig(SymDPR1(D[gx],z[gx],rho),k,tols)
-            end
-            
-            for l=1:lg0
-                # multiplication by eye is a temporary fix by Andreas
-                U=(R[l]*eye(n0))'*U
-            end 
-            
-        else
-            
-            # No deflation in D
-            for k=1:n
-                E[zx[k]],U[zx,zx[k]],Sind[zx[k]],Kb[zx[k]],Kz[zx[k]],Knu[zx[k]],Krho[zx[k]],Qout[zx[k]]=
-                dpr1eig(SymDPR1(D,z,rho),k,tols)
-            end
+    end 
+    
+    
+    #  Test for deflation in D
+    g=D[1:n-2]-D[2:n-1]
+    # Can play with inexact deflation
+    # g0=find(abs(g)<eps)
+    # gx=find(abs(g)>=eps)
+    # Only exact deflation !!
+    g0=find(g.==0.0)
+    gx=find(g.!=0.0)
+    if !isempty(g0)
+        # Deflation
+        Dgx=D[gx]; zgx=z[gx]
+        lg0=length(g0)
+        R=Array(Givens{Float64},lg0)
+        for l=lg0:-1:1
+            R[l]=givens(z[g0[l]],z[g0[l]+1],zx[g0[l]],zx[g0[l]+1],n0)
+            z[g0[l]]=R[l].r; z[g0[l]+1]=0.0
+            # A_mul_Bc!(U,R) # multiply R'*U later
+            E[zx[g0[l]+1]]=D[g0[l]+1]
+        end    
+        # remains
+        gx=[0;gx]+1
+        nn=length(gx)
+        
+        zxx=zx[[gx;n]]
+        for k=1:nn
+            E[zxx[k]],U[zxx,zxx[k]],Sind[zxx[k]],Kb[zxx[k]],Kz[zxx[k]],Knu[zxx[k]],Krho[zxx[k]],Qout[zxx[k]]=
+            dpr1eig(SymDPR1(D[gx],z[gx],rho),k,tols)
+        end
+        
+        for l=1:lg0
+            # multiplication by eye is a temporary fix by Andreas
+            U=(R[l]*eye(n0))'*U
+        end 
+        
+    else
+        
+        # No deflation in D
+        for k=1:n
+            E[zx[k]],U[zx,zx[k]],Sind[zx[k]],Kb[zx[k]],Kz[zx[k]],Knu[zx[k]],Krho[zx[k]],Qout[zx[k]]=
+            dpr1eig(SymDPR1(D,z,rho),k,tols)
         end
     end
+    
     # back premutation of vectors
     isi=sortperm(is)
     

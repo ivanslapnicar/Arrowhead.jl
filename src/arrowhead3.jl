@@ -484,52 +484,53 @@ function aheigall(A::SymArrow, tols::Vector{Float64})
         else
             n=length(z)+1
         end
+    end
+    zx=[zx;n0]
+    
+    #  Test for deflation in D
+    g=D[1:n-2]-D[2:n-1]
+    # Can play with inexact deflation
+    # g0=find(abs(g)<eps)
+    # gx=find(abs(g)>=eps)
+    # Only exact deflation !!
+    g0=find(g.==0.0)
+    gx=find(g.!=0.0)
+    if !isempty(g0)
+        # Deflation
+        Dgx=D[gx]; zgx=z[gx]
+        lg0=length(g0)
+        R=Array(Givens{Float64},lg0)
+        for l=lg0:-1:1
+            # This will be changed in v0.4
+            R[l]=givens(z[g0[l]],z[g0[l]+1],zx[g0[l]],zx[g0[l]+1],n0)
+            z[g0[l]]=R[l].r; z[g0[l]+1]=0.0
+            # A_mul_Bc!(U,R) # multiply R'*U later
+            E[zx[g0[l]+1]]=D[g0[l]+1]
+        end    
+        # remains
+        gx=[0;gx]+1
+        nn=length(gx)
+        
+        zxx=zx[[gx;n]]
+        for k=1:nn+1
+            E[zxx[k]],U[zxx,zxx[k]],Sind[zxx[k]],Kb[zxx[k]],Kz[zxx[k]],Knu[zxx[k]],Krho[zxx[k]],Qout[zxx[k]]=
+            aheig(SymArrow(D[gx],z[gx],A.a,nn+1),k,tols)
+        end
+        
+        for l=1:lg0
+            # multiplication by eye is a temporary fix by Andreas
+            U=(R[l]*eye(n0))'*U
+        end 
+        
     else
-        zx=[zx;n0]
-
-        #  Test for deflation in D
-        g=D[1:n-2]-D[2:n-1]
-        # Can play with inexact deflation
-        # g0=find(abs(g)<eps)
-        # gx=find(abs(g)>=eps)
-        # Only exact deflation !!
-        g0=find(g.==0.0)
-        gx=find(g.!=0.0)
-        if !isempty(g0)
-            # Deflation
-            Dgx=D[gx]; zgx=z[gx]
-            lg0=length(g0)
-            R=Array(Givens{Float64},lg0)
-            for l=lg0:-1:1
-                R[l]=givens(z[g0[l]],z[g0[l]+1],zx[g0[l]],zx[g0[l]+1],n0)
-                z[g0[l]]=R[l].r; z[g0[l]+1]=0.0
-                # A_mul_Bc!(U,R) # multiply R'*U later
-                E[zx[g0[l]+1]]=D[g0[l]+1]
-            end    
-            # remains
-            gx=[0;gx]+1
-            nn=length(gx)
-            
-            zxx=zx[[gx;n]]
-            for k=1:nn+1
-                E[zxx[k]],U[zxx,zxx[k]],Sind[zxx[k]],Kb[zxx[k]],Kz[zxx[k]],Knu[zxx[k]],Krho[zxx[k]],Qout[zxx[k]]=
-                aheig(SymArrow(D[gx],z[gx],A.a,nn+1),k,tols)
-            end
-
-            for l=1:lg0
-                # multiplication by eye is a temporary fix by Andreas
-                U=(R[l]*eye(n0))'*U
-            end 
-
-        else
-
-            # No deflation in D
-            for k=1:n
-                E[zx[k]],U[zx,zx[k]],Sind[zx[k]],Kb[zx[k]],Kz[zx[k]],Knu[zx[k]],Krho[zx[k]],Qout[zx[k]]=
-                aheig(SymArrow(D,z,A.a,n),k,tols)
-            end
+        
+        # No deflation in D
+        for k=1:n
+            E[zx[k]],U[zx,zx[k]],Sind[zx[k]],Kb[zx[k]],Kz[zx[k]],Knu[zx[k]],Krho[zx[k]],Qout[zx[k]]=
+            aheig(SymArrow(D,z,A.a,n),k,tols)
         end
     end
+    # end
     # back premutation of vectors
     isi=sortperm(is)
     
@@ -545,55 +546,55 @@ function aheigall(A::SymArrow, tols::Vector{Float64})
 end # aheigall
 
 
-    function bisect{T}(A::SymArrow{T}, side::Char)
-        # COMPUTES: the leftmost (for side='L') or the rightmost (for side='R') eigenvalue
-        # of a SymArrow A = [diag (D) z; z'] by bisection.
-        # RETURNS: the eigenvalue
-
-        # Determine the starting interval for bisection, [left; right]
-        # left, right = side == 'L' ? {minimum([A.D-abs(A.z),A.a-sum(abs(A.z))]), minimum(A.D)} : 
-        #   {maximum(A.D),maximum([A.D+abs(A.z),A.a+sum(abs(A.z))])}
-
-        absAz = abs(A.z)
-        if side == 'L'
-            left  = minimum(A.D - absAz)::T
-            left  = min(left, A.a - sum(absAz))::T
-            right = minimum(A.D)::T
+function bisect{T}(A::SymArrow{T}, side::Char)
+    # COMPUTES: the leftmost (for side='L') or the rightmost (for side='R') eigenvalue
+    # of a SymArrow A = [diag (D) z; z'] by bisection.
+    # RETURNS: the eigenvalue
+    
+    # Determine the starting interval for bisection, [left; right]
+    # left, right = side == 'L' ? {minimum([A.D-abs(A.z),A.a-sum(abs(A.z))]), minimum(A.D)} : 
+    #   {maximum(A.D),maximum([A.D+abs(A.z),A.a+sum(abs(A.z))])}
+    
+    absAz = abs(A.z)
+    if side == 'L'
+        left  = minimum(A.D - absAz)::T
+        left  = min(left, A.a - sum(absAz))::T
+        right = minimum(A.D)::T
+    else
+        left  = maximum(A.D)::T
+        right = maximum(A.D + absAz)::T
+        right = max(right, A.a + sum(absAz))::T
+    end
+    
+    # Bisection
+    middle = (left + right) / convert(T,2)
+    z2 = A.z .^ 2
+    count, n = 0, length(A.D)
+    
+    while (right-left) > 2.0 * eps() * max(abs(left), abs(right))
+        # in @time 50% of the time was garbage collection. The following line
+        # assigns new vector every time it is called, so it is much better in the
+        # loop?? Original timing were 30 secs for n=4000, 2.17 sec for n=1000 
+        
+        # Fmiddle = A.a-middle-sum(z2./(A.D-middle))
+        
+        Fmiddle = zero(T)
+        for k=1:n
+            Fmiddle += z2[k] / (A.D[k] - middle)
+        end
+        Fmiddle = A.a - middle - Fmiddle
+        
+        if Fmiddle > zero(T)
+            left = middle
         else
-            left  = maximum(A.D)::T
-            right = maximum(A.D + absAz)::T
-            right = max(right, A.a + sum(absAz))::T
+            right = middle
         end
-
-        # Bisection
         middle = (left + right) / convert(T,2)
-        z2 = A.z .^ 2
-        count, n = 0, length(A.D)
-
-        while (right-left) > 2.0 * eps() * max(abs(left), abs(right))
-            # in @time 50% of the time was garbage collection. The following line
-            # assigns new vector every time it is called, so it is much better in the
-            # loop?? Original timing were 30 secs for n=4000, 2.17 sec for n=1000 
-
-            # Fmiddle = A.a-middle-sum(z2./(A.D-middle))
-
-            Fmiddle = zero(T)
-            for k=1:n
-                Fmiddle += z2[k] / (A.D[k] - middle)
-            end
-            Fmiddle = A.a - middle - Fmiddle
-
-            if Fmiddle > zero(T)
-                left = middle
-            else
-                right = middle
-            end
-            middle = (left + right) / convert(T,2)
-        end
-        # Return the eigenvalue
-        right
-
-    end # bisect
+    end
+    # Return the eigenvalue
+    right
+    
+end # bisect
 
     function bisect( A::SymDPR1, side::Char )
         # COMPUTES: the leftmost (for side='L') or the rightmost (for side='R') eigenvalue
