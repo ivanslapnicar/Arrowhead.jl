@@ -418,7 +418,7 @@ function dpr1eigall(A::SymDPR1, tols::Vector{Float64})
         # Deflation
         Dgx=D[gx]; zgx=z[gx]
         lg0=length(g0)
-        R=Array(LinAlg.Givens{Float64},lg0)
+        R=Array(Givens{Float64},lg0)
         for l=lg0:-1:1
             R[l]=givens(z[g0[l]],z[g0[l]+1],zx[g0[l]],zx[g0[l]+1],n0)
             z[g0[l]]=R[l].r; z[g0[l]+1]=0.0
