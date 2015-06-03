@@ -407,7 +407,7 @@ function dpr1eigall(A::SymDPR1, tols::Vector{Float64})
     
     
     #  Test for deflation in D
-    g=D[1:n-2]-D[2:n-1]
+    g=D[1:n-1]-D[2:n]
     # Can play with inexact deflation
     # g0=find(abs(g)<eps)
     # gx=find(abs(g)>=eps)
@@ -418,7 +418,7 @@ function dpr1eigall(A::SymDPR1, tols::Vector{Float64})
         # Deflation
         Dgx=D[gx]; zgx=z[gx]
         lg0=length(g0)
-        R=Array(Givens{Float64},lg0)
+        R=Array(LinAlg.Givens{Float64},lg0)
         for l=lg0:-1:1
             R[l]=givens(z[g0[l]],z[g0[l]+1],zx[g0[l]],zx[g0[l]+1],n0)
             z[g0[l]]=R[l].r; z[g0[l]+1]=0.0
@@ -429,7 +429,7 @@ function dpr1eigall(A::SymDPR1, tols::Vector{Float64})
         gx=[0;gx]+1
         nn=length(gx)
         
-        zxx=zx[[gx;n]]
+        zxx=zx[gx]
         for k=1:nn
             E[zxx[k]],U[zxx,zxx[k]],Sind[zxx[k]],Kb[zxx[k]],Kz[zxx[k]],Knu[zxx[k]],Krho[zxx[k]],Qout[zxx[k]]=
             dpr1eig(SymDPR1(D[gx],z[gx],rho),k,tols)
