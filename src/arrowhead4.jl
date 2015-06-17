@@ -265,7 +265,10 @@ function  dpr1eig( A::SymDPR1,k::Integer,tols::Vector{Float64})
         if Knu<tols[3]
             # Accuracy is fine, compute the eigenvector
             mu = 1.0/nu
-            v=[ A.u./((A.D-sigma)-mu)]
+            # v=[ A.u./((A.D-sigma)-mu)]
+            for l=1:n                
+                v[l]= A.u[l]/((A.D[l]-sigma)-mu)
+            end
             #        for k=1:n-1
             #	   v[k] = A.z[k]/((A.D[k]-sigma)-mu)
             #        end 
@@ -463,6 +466,6 @@ function dpr1eigall(A::SymDPR1, tols::Vector{Float64})
     # Return this
     U,E,Sind[es],Kb[es],Kz[es],Knu[es],Krho[es],Qout[es]
     
-end # dpr1eig
+end # dpr1eigall
 
 
