@@ -437,7 +437,7 @@ function dpr1eigall(A::SymDPR1, tols::Vector{Float64})
         
         for l=1:lg0
             # multiplication by eye is a temporary fix by Andreas
-            U=(R[l]*eye(n0))'*U
+            U=(R[l])'*U
         end 
         
     else
