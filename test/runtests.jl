@@ -86,4 +86,4 @@ println("\n","HalfArrow with entries varying in magnitude","\n")
 @show Ua, Lambdaa, Va, Sind, Kb, Kz, Knu, Krho, Qout = ahsvdall( A, tols )
 @show N1=norm(Ua'*Ua-eye(8))
 @show N2=norm(Va'*Va-eye(8))
-@test N1 < 100.0*eps() && N2 < 100.0*eps() # Just test the orthogonality of the eigenvectors
+@test N1 < 300.0*eps() && N2 < 300.0*eps() # Just test the orthogonality of the eigenvectors
