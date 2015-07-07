@@ -570,8 +570,9 @@ function ahsvdall(A::HalfArrow, tols::Vector{Float64})
             end
             
             for l=1:lg0
-                # multiplication by eye is a temporary fix by Andreas
-                U=(R[l])'*U
+                # manual transpose
+                R1=Base.LinAlg.Givens(R[l].size, R[l].i1,R[l].i2,R[l].c,-R[l].s,R[l].r)
+                U=R1*U
             end 
             
         else
