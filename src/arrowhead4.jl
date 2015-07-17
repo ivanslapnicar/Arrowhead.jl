@@ -201,7 +201,7 @@ function inv{T}(A::SymDPR1{T}, shift::Double)
 end # inv
 
 
-function  dpr1eig( A::SymDPR1,k::Integer,tols::Vector{Float64})
+function  eig( A::SymDPR1,k::Integer,tols::Vector{Float64})
 
     # COMPUTES: k-th eigenpair of an ordered irreducible SymDPR1 
     # A = diagm(A.D)+A.r*A.u*A.u', A.r > 0
@@ -346,10 +346,10 @@ function  dpr1eig( A::SymDPR1,k::Integer,tols::Vector{Float64})
     # Return this
     lambda,v,i,Kb,Kz,Knu,Krho,Qout
     
-end # dpr1eig
+end # eig (k)
 
 
-function dpr1eigall(A::SymDPR1, tols::Vector{Float64})
+function eig(A::SymDPR1, tols::Vector{Float64})
 
     # COMPUTES: all eigenvalues and eigenvectors of a real symmetric SymDPR1 
     # A = diagm(A.D)+A.r*A.u*A.u'
@@ -398,6 +398,15 @@ function dpr1eigall(A::SymDPR1, tols::Vector{Float64})
     #  test for deflation in z
     z0=find(z.==0)
     zx=find(z.!=0)
+
+    if isempty(zx)  # nothing to do
+        E=A.D
+        isE=sortperm(E,rev=true)
+        E=E[isE]
+        U=U[:,isE]
+        return U,E,Sind,Kb,Kz,Knu,Krho,Qout
+    end
+         
     if !isempty(z0)
         E[z0]=D[z0]
         D=D[zx]
@@ -435,7 +444,7 @@ function dpr1eigall(A::SymDPR1, tols::Vector{Float64})
         zxx=zx[gx]
         for k=1:nn
             E[zxx[k]],U[zxx,zxx[k]],Sind[zxx[k]],Kb[zxx[k]],Kz[zxx[k]],Knu[zxx[k]],Krho[zxx[k]],Qout[zxx[k]]=
-            dpr1eig(SymDPR1(D[gx],z[gx],rho),k,tols)
+            eig(SymDPR1(D[gx],z[gx],rho),k,tols)
         end
         
         for l=1:lg0
@@ -449,7 +458,7 @@ function dpr1eigall(A::SymDPR1, tols::Vector{Float64})
         # No deflation in D
         for k=1:n
             E[zx[k]],U[zx,zx[k]],Sind[zx[k]],Kb[zx[k]],Kz[zx[k]],Knu[zx[k]],Krho[zx[k]],Qout[zx[k]]=
-            dpr1eig(SymDPR1(D,z,rho),k,tols)
+            eig(SymDPR1(D,z,rho),k,tols)
         end
     end
     
@@ -467,6 +476,6 @@ function dpr1eigall(A::SymDPR1, tols::Vector{Float64})
     # Return this
     U,E,Sind[es],Kb[es],Kz[es],Knu[es],Krho[es],Qout[es]
     
-end # dpr1eigall
+end # eig (all)
 
 

@@ -272,7 +272,7 @@ function inv{T}(A::HalfArrow{T}, shift::Double)
 end # inv
 
 
-function  ahsvd( A::HalfArrow,k::Integer,tols::Vector{Float64})
+function  svd( A::HalfArrow,k::Integer,tols::Vector{Float64})
     
     # COMPUTES: k-th singular value triple of an ordered irreducible HalfArrow
     # A = [diagm(A.D) A.z] with A.D > 0
@@ -460,10 +460,10 @@ function  ahsvd( A::HalfArrow,k::Integer,tols::Vector{Float64})
     # Return this
     lambda,u,v,i,Kb,Kz,Knu,Krho,Qout
     
-end # ahsvd
+end # svd (k)
 
 
-function ahsvdall(A::HalfArrow, tols::Vector{Float64})
+function svd(A::HalfArrow, tols::Vector{Float64})
 
     # COMPUTES: all singular values and singular vectors of a real HalfArrow
     # A = [diagm(A.D) A.z]
@@ -508,6 +508,24 @@ function ahsvdall(A::HalfArrow, tols::Vector{Float64})
     #  test for deflation in z
     z0=find(z.==0)
     zx=find(z.!=0)
+
+    if isempty(zx)  # nothing to do
+        if n==nd
+            E=[A.D]
+            isE=sortperm(E,rev=true)
+            E=E[isE]
+            V[:,1:n]=V[:,isE]
+            U=U[invperm(isE),:]    
+        else
+            E=[A.D;z[n]]
+            isE=sortperm(E,rev=true)
+            E=E[isE]
+            V=V[:,isE]
+            U=U[invperm(isE),:]
+        end
+        return U,E,V,Sind,Kb,Kz,Knu,Krho,Qout
+    end
+    
     if !isempty(z0)
         E[z0]=D[z0]
         for k=1:length(z0)
@@ -566,7 +584,7 @@ function ahsvdall(A::HalfArrow, tols::Vector{Float64})
 
             for k=1:nn+1
                 E[zxx[k]],U[zxx,zxx[k]],V[zxxv,zxx[k]],Sind[zxx[k]],Kb[zxx[k]],Kz[zxx[k]],Knu[zxx[k]],Krho[zxx[k]],
-                Qout[zxx[k]]=ahsvd(HalfArrow(D[gx],z[gx]),k,tols)
+                Qout[zxx[k]]=svd(HalfArrow(D[gx],z[gx]),k,tols)
             end
             
             for l=1:lg0
@@ -582,7 +600,7 @@ function ahsvdall(A::HalfArrow, tols::Vector{Float64})
             for k=1:n
                 # V[zxv,zx[k]]
                 E[zx[k]],U[zx,zx[k]],V[zxv,zx[k]],Sind[zx[k]],Kb[zx[k]],Kz[zx[k]],Knu[zx[k]],Krho[zx[k]],Qout[zx[k]]=
-                ahsvd(HalfArrow(D,z),k,tols)
+                svd(HalfArrow(D,z),k,tols)
                 # if signD[zx[k]]<0.0
                 #     V[zxv,zx[k]]=-V[zxv,zx[k]]
                 # end
@@ -610,7 +628,7 @@ function ahsvdall(A::HalfArrow, tols::Vector{Float64})
     # Return this
     U,E,V,Sind[es],Kb[es],Kz[es],Knu[es],Krho[es],Qout[es]
     
-end # ahsvdall
+end # svd (all)
 
 
 # this is just for convenience

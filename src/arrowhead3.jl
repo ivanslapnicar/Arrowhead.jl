@@ -285,7 +285,7 @@ function inv{T}(A::SymArrow{T}, shift::Double)
 end # inv
 
 
-function  aheig( A::SymArrow,k::Integer,tols::Vector{Float64})
+function  eig( A::SymArrow,k::Integer,tols::Vector{Float64})
 
     # COMPUTES: k-th eigenpair of an ordered irreducible SymArrow
     # A = [diag (D) z; z' alpha]
@@ -440,10 +440,10 @@ function  aheig( A::SymArrow,k::Integer,tols::Vector{Float64})
     # Return this
     lambda,v,i,Kb,Kz,Knu,Krho,Qout
 
-end # aheig
+end # eig (k)
 
 
-function aheigall(A::SymArrow, tols::Vector{Float64})
+function eig(A::SymArrow, tols::Vector{Float64})
 
     # COMPUTES: all eigenvalues and eigenvectors of a real symmetric SymArrow 
     # A = [diag(D) z;z' alpha] (notice, here we assume A.i==n)
@@ -474,6 +474,15 @@ function aheigall(A::SymArrow, tols::Vector{Float64})
     #  test for deflation in z
     z0=find(z.==0)
     zx=find(z.!=0)
+    
+    if isempty(zx)  # nothing to do
+        E=[A.D;A.a]
+        isE=sortperm(E,rev=true)
+        E=E[isE]
+        U=U[:,isE]
+        return U,E,Sind,Kb,Kz,Knu,Krho,Qout
+    end
+        
     if !isempty(z0)
         E[z0]=D[z0]
         D=D[zx]
@@ -514,7 +523,7 @@ function aheigall(A::SymArrow, tols::Vector{Float64})
         zxx=zx[[gx;n]]
         for k=1:nn+1
             E[zxx[k]],U[zxx,zxx[k]],Sind[zxx[k]],Kb[zxx[k]],Kz[zxx[k]],Knu[zxx[k]],Krho[zxx[k]],Qout[zxx[k]]=
-            aheig(SymArrow(D[gx],z[gx],A.a,nn+1),k,tols)
+            eig(SymArrow(D[gx],z[gx],A.a,nn+1),k,tols)
         end
         
         for l=1:lg0
@@ -528,7 +537,7 @@ function aheigall(A::SymArrow, tols::Vector{Float64})
         # No deflation in D
         for k=1:n
             E[zx[k]],U[zx,zx[k]],Sind[zx[k]],Kb[zx[k]],Kz[zx[k]],Knu[zx[k]],Krho[zx[k]],Qout[zx[k]]=
-            aheig(SymArrow(D,z,A.a,n),k,tols)
+            eig(SymArrow(D,z,A.a,n),k,tols)
         end
     end
     # end
@@ -544,7 +553,7 @@ function aheigall(A::SymArrow, tols::Vector{Float64})
     # Return this
     U,E,Sind[es],Kb[es],Kz[es],Knu[es],Krho[es],Qout[es]
     
-end # aheigall
+end # eig (all)
 
 
 function bisect{T}(A::SymArrow{T}, side::Char)

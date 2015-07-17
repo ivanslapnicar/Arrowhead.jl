@@ -3,7 +3,7 @@ importall Base
 # Define a Half Arrow Matrix Type
 immutable HalfArrow{T<:Real} <: AbstractMatrix{T}
     D::Vector{T} # diagonal
-    z::Vector{T} # 1st row[2:n]
+    z::Vector{T} # last column
 end
 
 # Define its size
