@@ -353,8 +353,8 @@ function  eig( A::SymArrow,k::Integer,tols::Vector{Float64})
         # nu1 is the F- or 1-norm of the inverse of the shifted matrix
         # nu10=maximum([sum(abs(Ainv.z))+abs(Ainv.a), maximum(abs(Ainv.D)+abs(Ainv.z))])
         nu1=0.0
-        for k=1:n-1
-            nu1=max(nu1,abs(Ainv.D[k])+abs(Ainv.z[k]))
+        for l=1:n-1
+            nu1=max(nu1,abs(Ainv.D[l])+abs(Ainv.z[l]))
         end
         nu1=max(sumabs(Ainv.z)+abs(Ainv.a), nu1)
 
@@ -363,8 +363,8 @@ function  eig( A::SymArrow,k::Integer,tols::Vector{Float64})
             # Accuracy is fine, compute the eigenvector
             mu = 1.0/nu
             # v=[ A.z./((A.D-sigma)-mu);-1.0]
-            for k=1:n-1
-            	v[k] = A.z[k]/((A.D[k]-sigma)-mu)
+            for l=1:n-1
+            	v[l] = A.z[l]/((A.D[l]-sigma)-mu)
             end 
             v[n]=-1.0
             lambda, v = mu+sigma, v/norm(v)
@@ -384,12 +384,12 @@ function  eig( A::SymArrow,k::Integer,tols::Vector{Float64})
                 Ainv,Qout1=inv(A,sigmav) # Ainv is Float64
                 nu1=bisect(Ainv,side) 
                 mu1 = 1.0/nu1
-                D0=map(A.D,Double)-sigmav
-                D1=D0.hi+D0.lo
+                D0=map(Double,A.D)-sigmav
+                D1=[D0[l].hi+D0[l].lo for l=1:length(D0)]
                 if findfirst(D1-mu1,0.0)>0 
-                    ind=find(D1-mu1==0.0);
+                    ind=find(D1-mu1==0.0)
                     v=zeros(n)
-                    v[ind]=1.0;
+                    v[ind]=1.0
                 else
                     v=[ A.z./(D1-mu1);-1.0]
                 end
