@@ -1,5 +1,6 @@
 using Arrowhead
 using DoubleDouble
+using MatrixDepot
 using Base.Test
 
 # There are four tests, a random matrix test and three tests from the arrowhead paper (see README for details)
@@ -87,3 +88,62 @@ println("\n","HalfArrow with entries varying in magnitude","\n")
 @show N1=norm(Ua'*Ua-eye(8))
 @show N2=norm(Va'*Va-eye(8))
 @test N1 < 300.0*eps() && N2 < 300.0*eps() # Just test the orthogonality of the eigenvectors
+
+println ("\n We test tridiagonal divide and conquer on the Wlikinson's matrix W21")
+
+@show W=SymTridiagonal(matrixdepot("wilkinson",21))
+@show U,E=tdc(W)
+Etrue= [10.746194182903393,
+ 10.746194182903322,
+ 9.210678647361332,
+ 9.210678647304919,
+ 8.038941122829023,
+ 8.038941115814273,
+ 7.003952209528675,
+ 7.003951798616375,
+ 6.000234031584167,
+ 6.000217522257098,
+ 5.000244425001913,
+ 4.999782477742902,
+ 4.004354023440857,
+ 3.9960482013836245,
+ 3.0430992925788236,
+ 2.9610588841857264,
+ 2.1302092193625057,
+ 1.7893213526950813,
+ 0.9475343675292932,
+ 0.25380581709667804,
+         -1.1254415221199847]
+@test norm(sort(E)-sort(Etrue))<eps()
+         
+
+println("\n There are two tests for roots of polynomials")
+
+println("\n The Wilkinson's polynomial p18")
+
+@show p18=[1 ,-171 , 13566 ,
+-662796 , 22323822 , -549789282 ,
+10246937272 , -147560703732 , 1661573386473,
+-14710753408923 , 102417740732658 , -557921681547048 ,
+2353125040549984 , -7551527592063024 , 17950712280921504 ,
+-30321254007719424 , 34012249593822720 , -22376988058521600 ,
+     6402373705728000]
+@show R,Qout=rootsah(p18)
+@test norm(R-[18.0:-1:1.0])<eps()
+
+println("\n Example 2 from [3]")
+@show 
+p5=[1,
+-20282409603651670423947251286016,
+713623846352979940529142984724747568191373312,
+-6277101735386680066937501969125693243111159424202737451008,
+4181389724724490601097907890741292883247104,
+    -618970019642690000010608640]
+@show R,Qout=rootsah(p5)
+Rtrue=  [2.028240960365167e31,
+ 1.759218623050247e13,
+ 1.7592185858329531e13,
+ 4.440892098500623e-16,
+               2.2204460492503136e-16]
+
+@test norm(sort(R)-sort(Rtrue))<eps()
