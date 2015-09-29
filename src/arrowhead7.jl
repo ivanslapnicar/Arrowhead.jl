@@ -39,7 +39,7 @@ function rootsah{T}(p::Vector{T},D...)
     # COMPUTES: the roots of polynomials with all distinct real roots.
     # The computation is forward stable. The program uses SymArrow (arrowhead) companion matrix and
     # corresponding eig routine
-    # D is optional parameter of barycentruic coordinates - elements od D must interpolate the roots pf P
+    # D is optional parameter of barycentric coordinates - elements od D must interpolate the roots pf P
     # RETURNS: roots E
   
     p=float64(p)

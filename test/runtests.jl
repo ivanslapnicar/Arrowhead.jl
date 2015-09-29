@@ -94,7 +94,7 @@ println ("\n We test tridiagonal divide and conquer on the Wlikinson's matrix W2
 
 @show W=SymTridiagonal(matrixdepot("wilkinson",21))
 @show U,E=tdc(W)
-Etrue= [10.746194182903393,
+@show Etrue= [10.746194182903393,
  10.746194182903322,
  9.210678647361332,
  9.210678647304919,
@@ -114,8 +114,9 @@ Etrue= [10.746194182903393,
  1.7893213526950813,
  0.9475343675292932,
  0.25380581709667804,
-         -1.1254415221199847]
-@test norm(sort(E)-sort(Etrue))<eps()
+ -1.1254415221199847]
+@show N=norm(sort(E)-sort(Etrue))
+@test N<eps()
          
 
 println("\n There are two tests for roots of polynomials")
@@ -141,7 +142,7 @@ p5=[1,
 4181389724724490601097907890741292883247104,
     -618970019642690000010608640]
 @show R,Qout=rootsah(p5)
-Rtrue=  [2.028240960365167e31,
+@show Rtrue=  [2.028240960365167e31,
  1.759218623050247e13,
  1.7592185858329531e13,
  4.440892098500623e-16,
