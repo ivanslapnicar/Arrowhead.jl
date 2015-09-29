@@ -115,8 +115,7 @@ println ("\n We test tridiagonal divide and conquer on the Wlikinson's matrix W2
  0.9475343675292932,
  0.25380581709667804,
  -1.1254415221199847]
-@show N=norm(sort(E)-sort(Etrue))
-@test N<eps()
+@test norm(sort(E)-sort(Etrue))<5.0*eps()
          
 
 println("\n There are two tests for roots of polynomials")
@@ -148,4 +147,4 @@ p5=[1,
  4.440892098500623e-16,
                2.2204460492503136e-16]
 
-@test norm(sort(R)-sort(Rtrue))<eps()
+@test norm(sort(R)-sort(Rtrue))<5.0*eps()
