@@ -1,5 +1,6 @@
 using Arrowhead
 using DoubleDouble
+using Polynomials
 using MatrixDepot
 using Base.Test
 
