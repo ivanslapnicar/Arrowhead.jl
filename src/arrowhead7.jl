@@ -14,7 +14,7 @@ function tdc(T::SymTridiagonal)
     elseif n==2
         U,E,rest=eig(SymArrow([T.dv[1]],[T.ev[1]],T.dv[2],2),tols)
     else
-        k=integer(floor(n/2))
+        k=round(Int,floor(n/2))
         T1=SymTridiagonal(T.dv[1:k],T.ev[1:k-1])
         T2=SymTridiagonal(T.dv[k+2:end],T.ev[k+2:end])
         U1,E1=tdc(T1)
@@ -42,7 +42,7 @@ function rootsah{T}(p::Vector{T},D...)
     # D is optional parameter of barycentric coordinates - elements od D must interpolate the roots pf P
     # RETURNS: roots E
   
-    p=float64(p)
+    p=map(Float64,p)
     # tols = [1e2,1e2,1e2,1e2,1e2] or similar is the vector of tolerances for eig
     tols=[1e2,1e2,1e2,1e2,1e2]
     

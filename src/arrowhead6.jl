@@ -543,9 +543,9 @@ function svd(A::HalfArrow, tols::Vector{Float64})
         end
     else
         if n0==nd
-            zxv=[zx,n0+1]
+            zxv=[zx;n0+1]
         else
-            zx=zxv=[zx,n0]
+            zx=zxv=[zx;n0]
             z=[z;A.z[n0]]
         end  
         n=length(z)
@@ -562,10 +562,10 @@ function svd(A::HalfArrow, tols::Vector{Float64})
             # Deflation
             Dgx=D[gx]; zgx=z[gx]
             lg0=length(g0)
-            R=Array(Givens{Float64},lg0)
+            R=Array(Tuple{Givens{Float64},Float64},lg0)
             for l=lg0:-1:1
-                R[l]=givens(z[g0[l]],z[g0[l]+1],zx[g0[l]],zx[g0[l]+1],n0)
-                z[g0[l]]=R[l].r; z[g0[l]+1]=0.0
+                R[l]=givens(z[g0[l]],z[g0[l]+1],zx[g0[l]],zx[g0[l]+1])
+                z[g0[l]]=R[l][2]; z[g0[l]+1]=0.0
                 # A_mul_Bc!(U,R) # multiply R'*U later
                 E[zx[g0[l]+1]]=D[g0[l]+1]
             end    
@@ -588,9 +588,7 @@ function svd(A::HalfArrow, tols::Vector{Float64})
             end
             
             for l=1:lg0
-                # manual transpose
-                R1=Base.LinAlg.Givens(R[l].size, R[l].i1,R[l].i2,R[l].c,-R[l].s,R[l].r)
-                U=R1*U
+                U=R[l][1]'*U
             end 
             
         else
