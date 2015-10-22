@@ -33,27 +33,29 @@ end
 
 
 # roots
-
-function rootsah{T}(p::Vector{T},D...)
+function rootsah{T}(pol::Poly{T},Dd...)
 
     # COMPUTES: the roots of polynomials with all distinct real roots.
     # The computation is forward stable. The program uses SymArrow (arrowhead) companion matrix and
     # corresponding eig routine
-    # D is optional parameter of barycentric coordinates - elements od D must interpolate the roots pf P
+    # D is optional parameter of barycentric coordinates - elements od D must interpolate the roots of P
     # RETURNS: roots E
-  
-    p=map(Float64,p)
+
+    p=map(Float64,[pol[i] for i=0:1:length(pol)-1])
     # tols = [1e2,1e2,1e2,1e2,1e2] or similar is the vector of tolerances for eig
     tols=[1e2,1e2,1e2,1e2,1e2]
-    
-    # Compute shaft of the arrowhead is it is not given as a parameter
-    if !isdefined(:D)
-        # D=roots(polyder(Poly(p[end:-1:1])))
+
+    # Compute shaft of the arrowhead if it is not given as a parameter
+    if isdefined(Dd,1)
+        D=Dd[1]
+    else
+        # D=roots(polyder(Poly(p)))
         # or 
-        D=1.0./roots(polyder(Poly(p)))
-        D=sort(D,rev=true)
+        D=1.0./roots(polyder(Poly(p[end:-1:1])))
     end
-    
+    D=sort(D,rev=true)
+    p=p[end:-1:1]
+
     # Compute z of the arrowhead
     # First we compute values s=p(D) we use Horner sheme with Double 
     
@@ -90,7 +92,6 @@ function rootsah{T}(p::Vector{T},D...)
         alphaD+=D[i]
     end
     alphaD*=(-1.0)
-    
     #  Compute z
     zD=Array(Double{Float64},n-1) 
     for i=1:n-1
