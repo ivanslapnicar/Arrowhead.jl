@@ -171,7 +171,7 @@ function inv{T}(A::SymArrow{T},zD::Vector{Double{Float64}}, alphaD::Double{Float
     else  # recompute in Double
         Qout=1
         shiftd=map(Double,A.D[i])
-        Dd=[Double{Float64}[Double(A.D[k])-shiftd for k=1:i-1], 
+        Dd=[Double{Float64}[Double(A.D[k])-shiftd for k=1:i-1]; 
             Double{Float64}[Double(A.D[k])-shiftd for
                             k=i+1:length(A.D)]]
         wzd=zD[i] # Double(A.z[i])

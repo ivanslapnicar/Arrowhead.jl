@@ -84,7 +84,7 @@ function inv{T}(A::HalfArrow{T},i::Integer,tols::Vector{Float64})
     else  # recompute in Double
         Qout=1
         shiftd=map(Double,A.D[i])
-        Dd=[Double{Float64}[(Double(A.D[k])+shiftd)*(Double(A.D[k])-shiftd) for k=1:i-1], 
+        Dd=[Double{Float64}[(Double(A.D[k])+shiftd)*(Double(A.D[k])-shiftd) for k=1:i-1]; 
             Double{Float64}[(Double(A.D[k])+shiftd)*(Double(A.D[k])-shiftd) for
                             k=i+1:length(A.D)]]
         wzd=Double(A.z[i])*shiftd

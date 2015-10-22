@@ -3,9 +3,6 @@ module Arrowhead
 using DoubleDouble
 using Polynomials
 
-isdefined(:__precompile__) && __precompile__(true)
-
-
 export GenSymArrow, SymArrow, eig, bisect, inv, GenSymDPR1, SymDPR1, HalfArrow, GenHalfArrow, svd, tdc, rootsah
 # println("test")
 include("arrowhead1.jl")

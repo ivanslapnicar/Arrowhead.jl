@@ -130,7 +130,7 @@ println("\n The Wilkinson's polynomial p18")
 -30321254007719424 , 34012249593822720 , -22376988058521600 ,
      6402373705728000]
 @show R,Qout=rootsah(p18)
-@test norm(R-[18.0:-1:1.0])<eps()
+@test norm(R-collect(18.0:-1:1.0))<eps()
 
 println("\n Example 2 from [3]")
 @show 
