@@ -75,7 +75,7 @@ function rootsah{T}(pol::Poly{T}, D::Vector{Float64})
         r=s.*DD
         s=r+pD[i]
     end
-    # println([s[i].hi+s[i].lo for i=1:n-1])
+
     # Compute t's
     t=Array(Double{T1},n-1)
     for j=1:n-1
@@ -99,9 +99,7 @@ function rootsah{T}(pol::Poly{T}, D::Vector{Float64})
     #  Compute z
     zD=Array(Double{T1},n-1) 
     for i=1:n-1
-        # @show i, map(Float64,(-1.0*s[i])/(t[i]*pD[1])),D[i], map(Float64,s[i]),map(Float64,t[i])
         zD[i]=sqrt((-s[i])/(t[i]*pD[1]))
-        # @show i,zD[i]
     end
     
     z=Array(Float64,n-1)
@@ -330,31 +328,18 @@ function inv{T,T1}(A::SymArrow{T}, zD::Vector{Double{T1}}, alphaD::Double{T1}, s
     oned=Double(one(T1))
     zerod=Double(zero(T1))
 
-
-    # Ds=A.D-shift
-    # D=[1./Ds[1:A.i-1];0.0;1./Ds[A.i:end]];
-    # u=[A.z[1:A.i-1]./Ds[1:A.i-1];-1.0;A.z[A.i:end]./Ds[A.i:end]];
-
     for k=1:i-1
-        #   tmp=Double(A.D[k])-shift
-        #    D[k]=oned/(Double(A.D[k])-shift)
         u[k]=u[k]/D[k]  
         D[k]=oned/D[k]
-        #   u[k]=Double(A.z[k])/tmp # *D[k]
     end
 
     for k=i:n
         u[k+1]=u[k]/D[k]
         D[k+1]=oned/D[k+1]  
-        # D[k+1]=oned/(Double(A.D[k])-shift)
-        # u[k+1]=Double(A.z[k])*D[k+1]
     end
 
     D[i]=zerod
     u[i]=-oned
-
-    # D=[Double(1.0)./D1[1:A.i-1];Double(0.0);Double(1.0)./D1[A.i:end]];
-    # u=[z1[1:A.i-1]./D1[1:A.i-1];Double(-1.0);z1[A.i:end]./D1[A.i:end]];
 
     # compute rho and Krho
     #--- compute the sum in a plain loop
@@ -374,9 +359,6 @@ function inv{T,T1}(A::SymArrow{T}, zD::Vector{Double{T1}}, alphaD::Double{T1}, s
     a.hi+a.lo<0.0  ? P=P-a : Q=Q-a
     r=oned/(P+Q)
 
-    # for k=1:length(A.D)
-    #    D1[k].hi+D1[k].lo>0.0 ? P=P+z1[k]^2/D1[k] : Q=Q+z1[k]^2/D1[k]
-    # end
 
     rho=Float64(-(r.hi+r.lo))
 
@@ -389,8 +371,6 @@ function inv{T,T1}(A::SymArrow{T}, zD::Vector{Double{T1}}, alphaD::Double{T1}, s
     for k=1:n+1
         u1[k]=Float64(u[k].hi+u[k].lo)
     end
-
-    # SymDPR1(T[x.hi+x.lo for x=D],T[x.hi+x.lo for x=u],rho), Qout
 
     SymDPR1(D1,u1,rho), Qout
 

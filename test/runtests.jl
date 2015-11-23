@@ -140,8 +140,9 @@ println("\n The Wilkinson's polynomial p18")
             -662796,
               13566,
                -171,
-                  1])
-@show R,Qout=rootsah(p18)
+                1])
+D=roots(polyder(p18))
+@show R,Qout=rootsah(p18,D)
 @test norm(R-collect(18.0:-1:1.0))<5*eps()
 
 println("\n Example 2 from [3]")
@@ -151,8 +152,9 @@ println("\n Example 2 from [3]")
 713623846352979940529142984724747568191373312,
 -20282409603651670423947251286016,
     1])
-
-@show R,Qout=rootsah(p5)
+p=map(Float64,[p5[i] for i=0:1:length(p5)-1])
+D=1.0./roots(polyder(Poly(p[end:-1:1])))
+@show R,Qout=rootsah(p5,D)
 @show Rtrue=  [2.028240960365167e31,
  1.759218623050247e13,
  1.7592185858329531e13,
