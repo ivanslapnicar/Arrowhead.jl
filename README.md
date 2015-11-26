@@ -25,6 +25,7 @@ The package also contains routines for applications:
 
 ### Contents
 
+#### Arrowhead and DPR1 Eigenvalues
 The file `arrowhead1.jl` contains definitions of types `SymArrow` (arrowhead) and `SymDPR1`. Full matrices are accessible with the command `full(A)`.
 
 The file `arrowhead3.jl` contains routines to generate random symmetric
@@ -42,6 +43,8 @@ which computes the k-th eigenpair of an ordered unreduced _SymDPR1_,
 and the driver routine `eig()` which computes all eigenvalues and
 eigenvectors of a _SymDPR1_.
 
+#### Half-arrowhead SVD
+
 The file `arrowhead5.jl` contains definition of type `HalfArrow`.
 _HalfArrow_ is of the form _[diagm(A.D) A.z]_ where either
 _length(A.z)=length(A.D)_
@@ -53,17 +56,24 @@ which computes the k-th singular value triplet _u, sigma, v_ of an ordered
 unreduced _HalfArrow_,  and the driver routine `svd()` which computes all
 singular values and vectors of a _HalfArrow_.
 
+#### Tridiagonal Divide and Conquer
+
 The file `arrowhead7.jl` contains a simple routine `tdc()` which implements
 divide-and-conquer method for `SymTridiagonal` matrices by spliting the matrix
 in two parts  and connecting the parts via eigenvalue decomposition of
 arrowhead matrix.
 
+#### Polynomial Roots
+
 The file `arrowhead7.jl` conatains the routine `rootsah()` which computes the
-roots of real polynomials with all distinct real roots. The computation is
+roots of `Int32`, `Int64`, `Float32` and `Float64` polynomials with all distinct real roots. The computation is
 forward stable. The program uses `SymArrow` form of companion matrix in
-barycenntric coordinates and
+barycentric coordinates and
 the corresponding `eig()` routine specially designed for this case.
-The file also contains three routines called `inv()`.
+The file also contains three routines called `inv()`. Similarly, the file 
+`arrowhead8.jl` conatains the routine `rootsah()` which computes the
+roots of `BigInt` and `BigFloat` polynomials with all distinct real roots.
+
 
 
 ### Authors and References

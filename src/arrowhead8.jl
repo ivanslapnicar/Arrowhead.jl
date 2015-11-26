@@ -1,39 +1,5 @@
-function tdc(T::SymTridiagonal)
-
-    # Tridiagonal divide-and-conquer using arrowhead matrices 
-    # COMPUTES: eigenvectors U and eigenvalues E of a SymTridiagonal matrix T,
-    # T = U*diagm(E)*U'
-    # RETURNS: U, E
-
-    n=length(T.dv)
-    # set the tolerances for eig
-    tols=[1e2,1e2,1e2,1e2,1e2]
-    if n==1
-        U=[1.0]
-        E=T.dv[1]
-    elseif n==2
-        U,E,rest=eig(SymArrow([T.dv[1]],[T.ev[1]],T.dv[2],2),tols)
-    else
-        k=round(Int,floor(n/2))
-        T1=SymTridiagonal(T.dv[1:k],T.ev[1:k-1])
-        T2=SymTridiagonal(T.dv[k+2:end],T.ev[k+2:end])
-        U1,E1=tdc(T1)
-        U2,E2=tdc(T2)
-        # form arrowhead
-        D=[E1;E2]
-        z=[U1'[:,end]*T.ev[k]; U2'[:,1]*T.ev[k+1]] 
-        a=T.dv[k+1]
-        A=SymArrow(D,z,a,k+1)
-        U,E,rest=eig(A,tols)
-        U[1:k,:]=U1*U[1:k,:]
-        U[k+2:end,:]=U2*U[k+2:end,:]
-    end
-    return U,E
-end
-
-
-# roots
-function rootsah(pol::Union{Poly{Float32},Poly{Float64},Poly{Int32},Poly{Int64}}, D::Vector{Float64})
+# roots for BigInt and BigFloat
+function rootsah(pol::Union{Poly{BigInt},Poly{BigFloat}}, D::Vector{Float64})
 
     # COMPUTES: the roots of polynomials with all distinct real roots.
     # The computation is forward stable. The program uses SymArrow (arrowhead) companion matrix and
@@ -46,7 +12,7 @@ function rootsah(pol::Union{Poly{Float32},Poly{Float64},Poly{Int32},Poly{Int64}}
     #              D=1.0./roots(polyder(Poly(p[end:-1:1])))
     # RETURNS: roots E
 
-    T = Float64 
+    T = BigFloat
     
     # tols = [1e2,1e2,1e2,1e2,1e2] or similar is the vector of tolerances for eig
     tols=[1e2,1e2,1e2,1e2,1e2]
@@ -59,54 +25,55 @@ function rootsah(pol::Union{Poly{Float32},Poly{Float64},Poly{Int32},Poly{Int64}}
     p=p[end:-1:1]
 
     # Compute z of the arrowhead
-    # First we compute values s=p(D) we use Horner sheme with Double    
+    # First we compute values s=p(D) we use Horner sheme with double the working precision
+    set_bigfloat_precision(512)
+    
     n=length(p)-1
-    pD=map(Double,p)
-    DD=map(Double,Dm)
-    oneD=Double(one(T))
-    s=Array(Double{T},n-1)
+    # pD=map(Double,p)
+    # DD=map(Double,Dm)
+    # oneD=Double(one(T))
+
+    s=Array(BigFloat,n-1)
     for i=1:n-1
-        s[i]=oneD
+        s[i]=one(T)
     end
-    s=pD[1]*s
+    s=p[1]*s
     for i=2:n+1
-        r=s.*DD
-        s=r+pD[i]
+        r=s.*Dm
+        s=r+p[i]
     end
 
     # Compute t's
-    t=Array(Double{T},n-1)
+    t=Array(BigFloat,n-1)
     for j=1:n-1
-        h=oneD
+        h=one(T)
         for i=1:j-1
-            g=DD[j]-DD[i]
+            g=Dm[j]-Dm[i]
             h=h*g
         end
         for i=j+1:n-1
-            g=DD[j]-DD[i]
+            g=Dm[j]-Dm[i]
             h=h*g
         end
         t[j]=h
     end
     # Compute alphaD 
-    alphaD=pD[2]/pD[1]
+    alphaD=p[2]/p[1]
     for i=1:n-1
-        alphaD+=DD[i]
+        alphaD+=Dm[i]
     end
-    # alphaD=-alphaD
-    alphaD=Double(-alphaD.hi,-alphaD.lo)
+    alphaD=-alphaD
     #  Compute z
-    zD=Array(Double{T},n-1) 
+    zD=Array(BigFloat,n-1) 
     for i=1:n-1
-        #         zD[i]=sqrt((-s[i])/(t[i]*pD[1]))
-        zD[i]=sqrt(Double(-s[i].hi,-s[i].lo)/(t[i]*pD[1]))
+        zD[i]=sqrt((-s[i])/(t[i]*p[1]))
     end
     
     z=Array(Float64,n-1)
     for i=1:n-1
-        z[i]=Float64(zD[i].lo+zD[i].hi)
+        z[i]=Float64(zD[i])
     end
-    alpha=Float64(alphaD.hi+alphaD.lo)
+    alpha=Float64(alphaD)
     A=SymArrow(D,z,alpha,n)
     
     E=zeros(Float64,n)
@@ -123,7 +90,7 @@ end
 
 #-------- Inverses  
 
-function inv{T}(A::SymArrow{T},zD::Vector{Double{T}}, alphaD::Double{T},i::Int64,tols::Vector{Float64})
+function inv{T}(A::SymArrow{T},zD::Vector{BigFloat}, alphaD::BigFloat,i::Int64,tols::Vector{Float64})
 
     # COMPUTES: inverse of a SymArrow matrix A, inv(A-A.D[i]*I) which is again SymArrow
     # uses higher precision to compute top of the arrow element accurately, if
@@ -172,33 +139,33 @@ function inv{T}(A::SymArrow{T},zD::Vector{Double{T}}, alphaD::Double{T},i::Int64
 
     if Kb<tols[1] ||  Kz<tols[2]
         b=(P+Q)*wz*wz
-    else  # recompute in Double
+    else  # recompute in double the working precision
+        set_bigfloat_precision(512)
         Qout=1
-        AD=map(Double{T},A.D)
+        AD=map(BigFloat,A.D)
         shiftd=AD[i]
         #shiftd=map(Double,A.D[i])
-        Dd=[Double{T}[AD[k]-shiftd for k=1:i-1]; 
-            Double{T}[AD[k]-shiftd for
-                            k=i+1:length(A.D)]]
-        wzd=zD[i] # Double(A.z[i])
+        Dd=[[AD[k]-shiftd for k=1:i-1]; 
+            [AD[k]-shiftd for k=i+1:length(A.D)]]
+        wzd=zD[i] #
         ad=alphaD-shiftd
 
-        Pd,Qd=map(Double{T},(0.0,0.0))
+        Pd,Qd=map(BigFloat,(0.0,0.0))
         
         for k=1:i-1
-            Dd[k].hi>0.0 ? Pd+=zD[k]^2/Dd[k] :
+            Dd[k] > 0.0 ? Pd+=zD[k]^2/Dd[k] :
             Qd+=zD[k]^2/Dd[k]
         end
         
         for k=i:nn
-            Dd[k].hi>0.0 ? Pd+=zD[k+1]^2/Dd[k] :
+            Dd[k] > 0.0 ? Pd+=zD[k+1]^2/Dd[k] :
             Qd+=zD[k+1]^2/Dd[k]
         end 
 
-        ad.hi<0 ?   Pd=Pd-ad : Qd=Qd-ad 
+        ad<0 ?   Pd=Pd-ad : Qd=Qd-ad 
 
         bd=(Pd+Qd)/(wzd*wzd)
-        b=Float64(bd.hi+bd.lo)
+        b=Float64(bd)
     end
 
     if i<A.i 
@@ -224,7 +191,7 @@ function inv{T}(A::SymArrow{T},zD::Vector{Double{T}}, alphaD::Double{T},i::Int64
 
 end # inv
 
-function inv{T}(A::SymArrow{T}, zD::Vector{Double{T}}, alphaD::Double{T}, shift::Float64, tolr::Float64)
+function inv{T}(A::SymArrow{T}, zD::Vector{BigFloat}, alphaD::BigFloat, shift::Float64, tolr::Float64)
 
     # COMPUTES: inverse of the shifted SymArrow A, inv(A-shift*I) which is SymDPR1
     # uses DoubleDouble to compute rho accurately, if needed. 
@@ -276,11 +243,11 @@ function inv{T}(A::SymArrow{T}, zD::Vector{Double{T}}, alphaD::Double{T}, shift:
     if Krho<tolr
         rho=-1.0/(P+Q)
 
-    else  # recompute in Double
+    else  # recompute in double the working precision
         Qout=1
-        Pd,Qd=map(Double{T},(0.0,0.0))
-        AD=map(Double{T},A.D)
-        shiftd=map(Double{T},shift)
+        Pd,Qd=map(BigFloat,(0.0,0.0))
+        AD=map(BigFloat,A.D)
+        shiftd=map(BigFloat,shift)
         ad=alphaD-shiftd
         #   Dd=[Double(A.D[k])-shiftd for k=1:length(A.D) ] 
         #   Dd=map(Double,A.D)-shiftd
@@ -294,9 +261,9 @@ function inv{T}(A::SymArrow{T}, zD::Vector{Double{T}}, alphaD::Double{T}, shift:
         # for k=1:length(A.D)
         #    Dd[k].hi>0.0 ? Pd=Pd+Double(A.z[k])^2/Dd[k] : Qd=Qd+Double(A.z[k])^2/Dd[k]
         # end
-        ad.hi+ad.lo<0 ? Pd=Pd-ad : Qd=Qd-ad
-        r=map(Double{T},1.0)/(Pd+Qd)
-        rho=Float64(-(r.hi+r.lo))
+        ad<0 ? Pd=Pd-ad : Qd=Qd-ad
+        r=map(BigFloat,1.0)/(Pd+Qd)
+        rho=Float64(-r)
     end
 
     # returns the following
@@ -304,29 +271,30 @@ function inv{T}(A::SymArrow{T}, zD::Vector{Double{T}}, alphaD::Double{T}, shift:
 
 end # inv
 
-function inv{T}(A::SymArrow{T}, zD::Vector{Double{T}}, alphaD::Double{T}, shift::Double{Float64})
+function inv{T}(A::SymArrow{T}, zD::Vector{BigFloat}, alphaD::BigFloat, shift::BigFloat)
 
     # COMPUTES: inverse of the shifted SymArrow A, inv(A-shift*I), which is a SymDPR1
-    # here shift is Double so it uses Double to compute everything 
+    # here shift is BigFloat so it uses double the working precision to compute everything 
     # RETURNS: SymDPR1(D1,u1,rho), Qout
-    # Qout = 1 on exit meaning Double was used 
+    # Qout = 1 on exit meaning Double was used
+
+    set_bigfloat_precision(512)
 
     n=length(A.D)
-    D=Array(Double,n+1)
-    u=Array(Double,n+1)
-    shiftd=map(Double{T},shift)
+    D=Array(BigFloat,n+1)
+    u=Array(BigFloat,n+1)
 
     # D[1:n]=map(Double,A.D)-shift
     for k=1:n
-        D[k]=map(Double{T},A.D[k])-shiftd
+        D[k]=map(BigFloat,A.D[k])-shift
     end
 
     u[1:n]=zD
-    a=alphaD-shiftd
+    a=alphaD-shift
     i=A.i
 
-    oned=Double(one(T))
-    zerod=Double(zero(T))
+    oned=one(BigFloat)
+    zerod=zero(BigFloat)
 
     for k=1:i-1
         u[k]=u[k]/D[k]  
@@ -350,26 +318,26 @@ function inv{T}(A::SymArrow{T}, zD::Vector{Double{T}}, alphaD::Double{T}, shift:
     for k=1:i-1
         # D[k].hi+D[k].lo > 0.0  # .lo cannot change sign, I think
         # D[k].hi > 0.0 ? P=P+Double(A.z[k])^2*D[k] : Q=Q+Double(A.z[k])^2*D[k]
-        D[k].hi > 0.0 ? P=P+zD[k]*u[k] : Q=Q+zD[k]*u[k]
+        D[k] > 0.0 ? P=P+zD[k]*u[k] : Q=Q+zD[k]*u[k]
     end
     for k=i:n
-        D[k+1].hi >0.0 ? P=P+zD[k]*u[k+1] : Q=Q+zD[k]*u[k+1]
+        D[k+1] > 0.0 ? P=P+zD[k]*u[k+1] : Q=Q+zD[k]*u[k+1]
     end
 
-    a.hi+a.lo<0.0  ? P=P-a : Q=Q-a
+    a<0.0  ? P=P-a : Q=Q-a
     r=oned/(P+Q)
 
 
-    rho=Float64(-(r.hi+r.lo))
+    rho=Float64(-r)
 
     # returns the following
     D1=Array(T,n+1)
     u1=Array(T,n+1)
     for k=1:n+1
-        D1[k]=Float64(D[k].hi+D[k].lo)
+        D1[k]=Float64(D[k])
     end
     for k=1:n+1
-        u1[k]=Float64(u[k].hi+u[k].lo)
+        u1[k]=Float64(u[k])
     end
 
     SymDPR1(D1,u1,rho), Qout
@@ -377,7 +345,7 @@ function inv{T}(A::SymArrow{T}, zD::Vector{Double{T}}, alphaD::Double{T}, shift:
 end # inv
 
 
-function  eig{T}( A::SymArrow{T},zD::Vector{Double{T}},alphaD::Double{T},k::Int64,tols::Vector{Float64})
+function  eig{T}( A::SymArrow{T},zD::Vector{BigFloat},alphaD::BigFloat,k::Int64,tols::Vector{Float64})
 
     # COMPUTES: k-th eigenvalue of an ordered irreducible SymArrow
     # A = [diag (D) z; z' alpha]
@@ -470,13 +438,14 @@ function  eig{T}( A::SymArrow{T},zD::Vector{Double{T}},alphaD::Double{T},k::Int6
 
             if findfirst(A.D-sigma1,0.0)>0 # we came back with a pole
                 # recompute sigmav more accurately according with dekker
-                sigmav=(Double(nu1)+Double(nu))/(Double(2.0)*Double(nu)*Double(nu1))+Double(sigma)
+                set_bigfloat_precision(512)
+                sigmav=(nu1+nu)/(BigFloat(2.0)*nu*nu1)+sigma
                 # Compute the inverse of the shifted arrowhead (DPR1)
                 Ainv,Qout1=inv(A,sigmav) # Ainv is Float64
                 nu1=bisect(Ainv,side) 
                 mu1 = 1.0/nu1
-                D0=map(Double,A.D)-sigmav
-                D1=[D0[l].hi+D0[l].lo for l=1:length(D0)]
+                D0=map(BigFloat,A.D)-sigmav
+                D1=[D0[l] for l=1:length(D0)]
                 if findfirst(D1-mu1,0.0)>0 
                     ind=find(D1-mu1==0.0)
                     v=zeros(n)
@@ -485,12 +454,12 @@ function  eig{T}( A::SymArrow{T},zD::Vector{Double{T}},alphaD::Double{T},k::Int6
                     v=[ A.z./(D1-mu1);-1.0]
                 end
                 # Shift the eigenvalue back in Double
-                lam = Double(1.0)/Double(nu1)+sigmav
+                lam = BigFloat(1.0)/nu1+sigmav
                 # Return this
-                lambda,v = lam.hi+lam.lo, v/norm(v)       
+                lambda,v = lam, v/norm(v)       
             else
                 # Compute the inverse of the shifted arrowhead (DPR1)
-                Ainv, Krho,Qout1=Arrowhead.inv(A,sigma1,tols[4]) # Ainv is Float64
+                Ainv, Krho,Qout1=inv(A,sigma1,tols[4]) # Ainv is Float64
                 # Compute the eigenvalue by bisect for DPR1
 	            # Note: instead of bisection could use dlaed4 (need a wrapper) but
 	            # it is not faster. There norm(u)==1
@@ -529,7 +498,7 @@ function  eig{T}( A::SymArrow{T},zD::Vector{Double{T}},alphaD::Double{T},k::Int6
     end
 
     # Return this
-    lambda, Qout
+    Float64(lambda), Qout
     
 end # eig (k)
 
