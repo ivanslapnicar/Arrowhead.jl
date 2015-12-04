@@ -378,16 +378,18 @@ function  eig{T}( A::SymArrow{T},zD::Vector{BigFloat},alphaD::BigFloat,k::Int64,
         sigma,i,side = A.D[n-1],n-1,'L'
     else
         # Interior eigenvalues (k in (2,...n-1) ):
-        Dtemp = A.D-A.D[k]
-        atemp = A.a-A.D[k]
-        middle = Dtemp[k-1]/2.0
-        Fmiddle = (atemp-middle)-sum(A.z.^2./(Dtemp-middle))
-        # middle=(A.D[k-1]-A.D[k])/2.0
-        # Fmiddle=0.0
-        # for l=1:n-1
-        #     Fmiddle+=A.z[l]^2/((A.D[l]-A.D[k])-middle)
-        # end
-        # Fmiddle=((A.a-A.D[k])-middle)-Fmiddle
+        # We need to compute this in BigFloat
+        Dd=map(Double,A.D)
+        # Dtemp = A.D-A.D[k]
+        # atemp = A.a-A.D[k]
+        # middle = Dtemp[k-1]/2.0
+        # Fmiddle = (atemp-middle)-sum(A.z.^2./(Dtemp-middle))
+        middle=(Dd[k-1]-Dd[k])/2.0
+        Fmiddle=zero(BigFloat)
+        for l=1:n-1
+            Fmiddle+=zD[l]^2/((Dd[l]-Dd[k])-middle)
+        end
+        Fmiddle=((alphaD-Dd[k])-middle)-Fmiddle
         sigma,i,side = Fmiddle < 0.0 ? (A.D[k],k,'R') : (A.D[k-1],k-1,'L')
     end
 

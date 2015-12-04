@@ -172,6 +172,8 @@ function inv{T}(A::SymArrow{T},zD::Vector{Double{T}}, alphaD::Double{T},i::Int64
 
     if Kb<tols[1] ||  Kz<tols[2]
         b=(P+Q)*wz*wz
+    elseif Kb==Inf
+       b=0.0
     else  # recompute in Double
         Qout=1
         AD=map(Double{T},A.D)
@@ -410,17 +412,19 @@ function  eig{T}( A::SymArrow{T},zD::Vector{Double{T}},alphaD::Double{T},k::Int6
         sigma,i,side = A.D[n-1],n-1,'L'
     else
         # Interior eigenvalues (k in (2,...n-1) ):
-        Dtemp = A.D-A.D[k]
-        atemp = A.a-A.D[k]
-        middle = Dtemp[k-1]/2.0
-        Fmiddle = (atemp-middle)-sum(A.z.^2./(Dtemp-middle))
-        # middle=(A.D[k-1]-A.D[k])/2.0
-        # Fmiddle=0.0
-        # for l=1:n-1
-        #     Fmiddle+=A.z[l]^2/((A.D[l]-A.D[k])-middle)
-        # end
-        # Fmiddle=((A.a-A.D[k])-middle)-Fmiddle
-        sigma,i,side = Fmiddle < 0.0 ? (A.D[k],k,'R') : (A.D[k-1],k-1,'L')
+        # We need to compute this in Double
+        Dd=map(Double,A.D)
+        # Dtemp = Dd-Dd[k]
+        # atemp = alphaD-Dd[k]
+        # middle = Dtemp[k-1]/2.0
+        # Fmiddle = (atemp-middle)-sum(A.z.^2./(Dtemp-middle))
+        middle=(Dd[k-1]-Dd[k])/Double(2.0)
+        Fmiddle=Double(zero(T))
+        for l=1:n-1
+            Fmiddle+=zD[l]^2/((Dd[l]-Dd[k])-middle)
+        end
+        Fmiddle=((alphaD-Dd[k])-middle)-Fmiddle
+        sigma,i,side = Fmiddle.hi+Fmiddle.lo < 0.0 ? (A.D[k],k,'R') : (A.D[k-1],k-1,'L')
     end
 
     # Compute the inverse of the shifted matrix, A_i^(-1), Kb and Kz
@@ -463,7 +467,7 @@ function  eig{T}( A::SymArrow{T},zD::Vector{Double{T}},alphaD::Double{T},k::Int6
             # Remedies according to Remark 3 - we shift between original
             # eigenvalues and compute DPR1 matrix
             # 1/nu1+sigma, 1/nu+sigma
-            # println("Remedy 3 ")
+            # println(k, " Remedy 3 ")
             nu = side=='R' ? abs(nu) : -abs(nu)
             nu1=-sign(nu)*nu1
             sigma1=(nu1+nu)/(2.0*nu*nu1)+sigma
@@ -510,7 +514,7 @@ function  eig{T}( A::SymArrow{T},zD::Vector{Double{T}},alphaD::Double{T},k::Int6
 
             if k==1 && A.D[1]<0.0 || k==n && A.D[n-1]>0.0 || i<n-1 && side=='L' && sign(A.D[i])+sign(A.D[i+1])==0 ||
                 side=='R' && sign(A.D[i])+sign(A.D[i-1])==0
-                # println("Remedy 1 ")
+                # println(k, " Remedy 1 ")
                 # Compute the inverse of the original arrowhead (DPR1)
                 Ainv,Krho,Qout1 = inv(A,0.0,tols[4]) # Ainv is Float64
                 Qout==1 && (Qout=Qout+4)
