@@ -78,9 +78,13 @@ function rootsah(pol::Union{Poly{BigInt},Poly{BigFloat}}, D::Vector{Float64})
     
     E=zeros(Float64,n)
     Qout=zeros(Int64,n)
+    
     for k=1:n
         E[k], Qout[k] = eig( A,zD,alphaD,k,tols )
     end
+
+    # reset the bigfloat_precision
+    set_bigfloat_precision(256)
 
     E, Qout
 end
@@ -140,7 +144,6 @@ function inv{T}(A::SymArrow{T},zD::Vector{BigFloat}, alphaD::BigFloat,i::Int64,t
     if Kb<tols[1] ||  Kz<tols[2]
         b=(P+Q)*wz*wz
     else  # recompute in double the working precision
-        set_bigfloat_precision(512)
         Qout=1
         AD=map(BigFloat,A.D)
         shiftd=AD[i]
@@ -278,8 +281,6 @@ function inv{T}(A::SymArrow{T}, zD::Vector{BigFloat}, alphaD::BigFloat, shift::B
     # RETURNS: SymDPR1(D1,u1,rho), Qout
     # Qout = 1 on exit meaning Double was used
 
-    set_bigfloat_precision(512)
-
     n=length(A.D)
     D=Array(BigFloat,n+1)
     u=Array(BigFloat,n+1)
@@ -378,19 +379,24 @@ function  eig{T}( A::SymArrow{T},zD::Vector{BigFloat},alphaD::BigFloat,k::Int64,
         sigma,i,side = A.D[n-1],n-1,'L'
     else
         # Interior eigenvalues (k in (2,...n-1) ):
-        # We need to compute this in BigFloat
-        Dd=map(Double,A.D)
-        # Dtemp = A.D-A.D[k]
-        # atemp = A.a-A.D[k]
-        # middle = Dtemp[k-1]/2.0
-        # Fmiddle = (atemp-middle)-sum(A.z.^2./(Dtemp-middle))
-        middle=(Dd[k-1]-Dd[k])/2.0
-        Fmiddle=zero(BigFloat)
-        for l=1:n-1
-            Fmiddle+=zD[l]^2/((Dd[l]-Dd[k])-middle)
-        end
-        Fmiddle=((alphaD-Dd[k])-middle)-Fmiddle
-        sigma,i,side = Fmiddle < 0.0 ? (A.D[k],k,'R') : (A.D[k-1],k-1,'L')
+        # We need to compute Fmiddle carefully
+        
+        Dtemp = A.D-A.D[k]
+        middle = Dtemp[k-1]/2.0
+
+        P=zero(Float64)
+        Q=zero(Float64)
+        P=P+sum(A.z[1:k-1].^2./(Dtemp[1:k-1]-middle))
+        Q=Q+sum(A.z[k:n-1].^2./(Dtemp[k:n-1]-middle))
+
+        P1=map(BigFloat,P)
+        Q1=map(BigFloat,Q)
+        atemp = (alphaD-map(BigFloat,A.D[k]))-map(BigFloat,middle)
+        atemp<0 ? P1=P1-atemp : Q1=Q1-atemp
+
+        # Fmiddle = (atemp-middle)-sum(zD.^2./(Dtemp-middle))
+        Fmiddle=-(P1+Q1)
+        sigma,i,side = Fmiddle < zero(BigFloat) ? (A.D[k],k,'R') : (A.D[k-1],k-1,'L')
     end
 
     # Compute the inverse of the shifted matrix, A_i^(-1), Kb and Kz
