@@ -1,15 +1,12 @@
-# roots for BigInt and BigFloat
+# rootsah for BigInt and BigFloat
 function rootsah(pol::Union{Poly{BigInt},Poly{BigFloat}}, D::Vector{Float64})
 
     # COMPUTES: the roots of polynomials with all distinct real roots.
     # The computation is forward stable. The program uses SymArrow (arrowhead) companion matrix and
     # corresponding eig routine
-    # D are barycentric coordinates - elements od D must interpolate the roots of P
-    # Some ways to compute D:
+    # D are barycentric coordinates - elements od D must interpolate the roots of P,
+    # for example
     #              D=roots(polyder(pol))
-    #                      or
-    #              p=map(Float64,[pol[i] for i=0:1:length(pol)-1])
-    #              D=1.0./roots(polyder(Poly(p[end:-1:1])))
     # RETURNS: roots E
 
     T = BigFloat
@@ -491,7 +488,7 @@ function  eig{T}( A::SymArrow{T},zD::Vector{BigFloat},alphaD::BigFloat,k::Int64,
                 # Compute the inverse of the original arrowhead (DPR1)
                 Ainv,Krho,Qout1 = inv(A,0.0,tols[4]) # Ainv is Float64
                 Qout==1 && (Qout=Qout+4)
-                if abs(Ainv.r)==Inf
+                if isinf(Ainv.r) || isnan(Ainv.r)
                     lambda=0.0
                 else                
                     # Here we do not need bisection. We compute the Rayleigh
@@ -509,4 +506,16 @@ function  eig{T}( A::SymArrow{T},zD::Vector{BigFloat},alphaD::BigFloat,k::Int64,
     Float64(lambda), Qout
     
 end # eig (k)
+
+function rootsWDK{T,T1}(p::Poly{T},x0::Vector{T1},steps)
+    # Polynomial roots with Weierstrass, Durand, Kerner method
+    n=length(x0)
+    x=x0
+    for k=1:steps        
+        for i=1:n
+            x[i]=x[i]-polyval(p,x[i])/(p[end]*prod(x[i]-x[collect([1:i-1;i+1:n])]))
+        end
+    end
+    x
+end
 

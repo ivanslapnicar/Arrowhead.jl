@@ -118,8 +118,8 @@ println("\n We test tridiagonal divide and conquer on the Wlikinson's matrix W21
 @test norm(sort(E)-sort(Etrue))<5.0*eps()
          
 
-println("\n There are two tests for roots of polynomials")
-
+println("\n There are three tests for roots of polynomials")
+println("\n Example 1 from [3]")
 println("\n The Wilkinson's polynomial p18")
 
 @show p18=Poly([   6402373705728000,
@@ -146,14 +146,16 @@ D=roots(polyder(p18))
 @test norm(R-collect(18.0:-1:1.0))<5*eps()
 
 println("\n Example 2 from [3]")
-@show p5=Poly([-618970019642690000010608640,
+e5=[-618970019642690000010608640,
 4181389724724490601097907890741292883247104,
 -6277101735386680066937501969125693243111159424202737451008,
 713623846352979940529142984724747568191373312,
--20282409603651670423947251286016,
-    1])
-p=map(Float64,[p5[i] for i=0:1:length(p5)-1])
-D=1.0./roots(polyder(Poly(p[end:-1:1])))
+-20282409603651670423947251286016, 1]
+@show p5=Poly(map(Float64,e5))
+pd=polyder(p5)
+pd=pd/pd[end]
+r=roots(pd)
+D=rootsWDK(pd,r,1)
 @show R,Qout=rootsah(p5,D)
 @show Rtrue=  [2.028240960365167e31,
  1.759218623050247e13,
@@ -162,3 +164,26 @@ D=1.0./roots(polyder(Poly(p[end:-1:1])))
                2.2204460492503136e-16]
 
 @test norm(sort(R)-sort(Rtrue))<5.0*eps()
+
+println("\n Example 3 from [3]")
+println("\n The Chebyshev's polynomial T[374]")
+
+# Generate first 374 Chebyshev polynomials in BigFloat
+n=374
+T=Array(Any,n+1)
+T[1]=Poly([BigFloat(1)])
+T[2]=Poly([BigFloat(0),1])
+for i=3:n+1
+    T[i]=2*T[2]*T[i-1]-T[i-2]
+end
+
+# True zeros
+Rtrue=map(Float64,[cos((2*k-1)*pi/(2*n)) for k=1:n])
+# Zeros of T[n]
+D=map(Float64,[cos((2*k-1)*pi/(2*(n-1))) for k=1:n-1])
+
+# Computed zeros
+R,qout=rootsah(T[n+1],D);
+
+@show mean(abs(sort(R)-sort(Rtrue))./abs(sort(Rtrue))), maximum(abs(sort(R)-sort(Rtrue))./abs(sort(Rtrue)))
+@test norm(sort(R)-sort(Rtrue))<10.0*eps()

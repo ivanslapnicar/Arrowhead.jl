@@ -38,12 +38,9 @@ function rootsah(pol::Union{Poly{Float32},Poly{Float64},Poly{Int32},Poly{Int64}}
     # COMPUTES: the roots of polynomials with all distinct real roots.
     # The computation is forward stable. The program uses SymArrow (arrowhead) companion matrix and
     # corresponding eig routine
-    # D are barycentric coordinates - elements od D must interpolate the roots of P
-    # Some ways to compute D:
+    # D are barycentric coordinates - elements od D must interpolate the roots of P,
+    # for example
     #              D=roots(polyder(pol))
-    #                      or
-    #              p=map(Float64,[pol[i] for i=0:1:length(pol)-1])
-    #              D=1.0./roots(polyder(Poly(p[end:-1:1])))
     # RETURNS: roots E
 
     T = Float64 
