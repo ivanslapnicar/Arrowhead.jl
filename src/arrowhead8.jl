@@ -23,7 +23,7 @@ function rootsah(pol::Union{Poly{BigInt},Poly{BigFloat}}, D::Vector{Float64})
 
     # Compute z of the arrowhead
     # First we compute values s=p(D) we use Horner sheme with double the working precision
-    set_bigfloat_precision(512)
+    setprecision(512)
     
     n=length(p)-1
     # pD=map(Double,p)
@@ -81,7 +81,7 @@ function rootsah(pol::Union{Poly{BigInt},Poly{BigFloat}}, D::Vector{Float64})
     end
 
     # reset the bigfloat_precision
-    set_bigfloat_precision(256)
+    setprecision(256)
 
     E, Qout
 end
@@ -443,7 +443,7 @@ function  eig{T}( A::SymArrow{T},zD::Vector{BigFloat},alphaD::BigFloat,k::Int64,
 
             if findfirst(A.D-sigma1,0.0)>0 # we came back with a pole
                 # recompute sigmav more accurately according with dekker
-                set_bigfloat_precision(512)
+                setprecision(512)
                 sigmav=(nu1+nu)/(BigFloat(2.0)*nu*nu1)+sigma
                 # Compute the inverse of the shifted arrowhead (DPR1)
                 Ainv,Qout1=inv(A,sigmav) # Ainv is Float64

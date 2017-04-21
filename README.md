@@ -4,6 +4,8 @@
 
 ### Basics
 
+N.B. Always use the leatest master obtained by `Pkg.checkout("Arrowhead")`.
+
 The package contains routines for __forward stable__ algorithms which compute:
 * all eigenvalues and eigenvectors of a real symmetric arrowhead matrices,
 * all eigenvalues and eigenvectors of rank-one modifications of diagonal matrices (DPR1), and

@@ -51,31 +51,39 @@ function inv{T}(A::SymDPR1{T},i::Integer,tols::Vector{Float64})
 
     if Kb<tols[1] ||  Kz<tols[2]
         b=(P+Q)*wz*wz
-    else  # recompute in Double
-        Qout=1
-        shiftd=map(Double,A.D[i])
-        Dd=[Double{Float64}[Double(A.D[k])-shiftd for k=1:i-1];
-            Double{Float64}[Double(A.D[k])-shiftd for
+    else  # recompute in Double or BigFoat
+        if Kz<eps()^2 
+            Type=Double
+            Qout=1
+        else
+        # Example of a matrix where BigFloat is neeed, courtesy of Stan Eisenstat, is:
+        # A=SymDPR1([1+3*eps(), 1-3*eps(), 0, -(1-eps()), -(1+eps())],[1,1,eps()^4, 3,3],1/16)
+            Type=BigFloat
+            Qout=50
+        end
+        shiftd=map(Type,A.D[i])
+        Dd=[[Type(A.D[k])-shiftd for k=1:i-1];
+            [Type(A.D[k])-shiftd for
                             k=i+1:length(A.D)]]
-        wzd=Double(A.u[i])
+        wzd=Type(A.u[i])
 
-        Pd,Qd=map(Double,(0.0,0.0))
+        Pd,Qd=map(Type,(0.0,0.0))
         
         for k=1:i-1
-            Dd[k].hi>0.0 ? Pd+=Double(A.u[k])^2/Dd[k] :
-            Qd+=Double(A.u[k])^2/Dd[k]
+            map(Float64,Dd[k])>0.0 ? Pd+=Type(A.u[k])^2/Dd[k] :
+            Qd+=Type(A.u[k])^2/Dd[k]
         end
         
         for k=i+1:n
-            Dd[k-1].hi>0.0 ? Pd+=Double(A.u[k])^2/Dd[k-1] :
-            Qd+=Double(A.u[k])^2/Dd[k-1]
+            map(Float64,Dd[k-1])>0.0 ? Pd+=Type(A.u[k])^2/Dd[k-1] :
+            Qd+=Type(A.u[k])^2/Dd[k-1]
             # @show P,Q
         end 
 
-        A.r > 0 ?   Pd+=Double(1.0)/Double(A.r)  : Qd+=Double(1.0)/Double(A.r)
+        A.r > 0 ?   Pd+=Type(1.0)/Type(A.r)  : Qd+=Type(1.0)/Type(A.r)
 
         bd=(Pd+Qd)/(wzd*wzd)
-        b=bd.hi+bd.lo
+        b=map(Float64,bd)
     end
 
     # return this
@@ -131,11 +139,27 @@ function inv{T}(A::SymDPR1{T}, shift::Float64, tolr::Float64)
         end
 
         A.r > 0 ?   Pd+=Double(1.0)/Double(A.r)  : Qd+=Double(1.0)/Double(A.r)
-        r=Double(1.0)/(Pd+Qd)
-        rho=-(r.hi+r.lo)
+        if Pd+Qd!=Double(0.0,0.0)
+            Krho=Float64((Pd-Qd)/abs(Pd+Qd))
+            r=Double(1.0)/(Pd+Qd)
+            rho=-(r.hi+r.lo)
+        else
+        # Here we need quadruple working precision. We are using BigFloat.
+        # Example of a matrix where this is neeed, courtesy of Stan Eisenstat, is:
+        # A=SymDPR1([1+3*eps(), 1-3*eps(), -(1-eps()), -(1+eps())],[1,1,3,3.0],1/16) 
+            Qout=100
+            Pd,Qd=map(BigFloat,(0.0,0.0))
+            shiftd=BigFloat(shift)
+            for k=1:n
+                D[k]>0.0 ? Pd=Pd+BigFloat(A.u[k])^2/(BigFloat(A.D[k])-shiftd) : Qd=Qd+BigFloat(A.u[k])^2/(BigFloat(A.D[k])-shiftd)
+            end
 
+            A.r > 0 ?   Pd+=BigFloat(1.0)/BigFloat(A.r)  : Qd+=BigFloat(1.0)/BigFloat(A.r)
+            Krho=Float64((Pd-Qd)/abs(Pd+Qd))
+            r=BigFloat(-1.0)/(Pd+Qd)
+            rho=Float64(r)
+        end
     end
-
     # returns the following
     SymDPR1(D,u,rho), Krho, Qout
 
@@ -278,13 +302,13 @@ function  eig( A::SymDPR1,k::Integer,tols::Vector{Float64})
             # Remedies according to Remark 3 - we shift between original
             # eigenvalues and compute DPR1 matrix
             # 1/nu1+sigma, 1/nu+sigma
-            println("Remedy 3 ")
+            # println("Remedy 3 ")
             nu = side=='R' ? abs(nu) : -abs(nu)
             nu1=-sign(nu)*nu1
             sigma1=(nu1+nu)/(2.0*nu*nu1)+sigma
 
             if findfirst(A.D-sigma1,0.0)>0 # we came back with a pole
-                # recompute sigmav more accurately according with dekker
+                # recompute sigmav more accurately according with Dekker
                 sigmav=(Double(nu1)+Double(nu))/(Double(2.0)*Double(nu)*Double(nu1))+Double(sigma)
                 # Compute the inverse of the shifted arrowhead (DPR1)
                 Ainv,Qout1=inv(A,sigmav) # Ainv is Float64
@@ -316,7 +340,7 @@ function  eig( A::SymDPR1,k::Integer,tols::Vector{Float64})
                 # Return this - shift the eigenvalue back and normalize the vector
                 lambda, v = mu1+sigma1, v/norm(v)
             end
-            Qout==1 && (Qout=Qout+2)
+            Qout=Qout+2*Qout1
         end
 
         # Remedy according to Remark 1 - we recompute the the eigenvalue
@@ -325,10 +349,10 @@ function  eig( A::SymDPR1,k::Integer,tols::Vector{Float64})
 
             if (k==1 && A.D[1]<0.0 || side=='L' && sign(A.D[i])+sign(A.D[i+1])==0 ||
                 side=='R' && sign(A.D[i])+sign(A.D[i-1])==0)
-                println("Remedy 1 ")
+                # println("Remedy 1 ")
                 # Compute the inverse of the original arrowhead (DPR1)
                 Ainv,Krho,Qout1 = inv(A,0.0,tols[4]) # Ainv is Float64
-                Qout==1 && (Qout=Qout+4)
+                Qout=Qout+4*Qout1
                 if abs(Ainv.r)==Inf
                     lambda=0.0
                 else                

@@ -64,32 +64,40 @@ function inv{T}(A::SymArrow{T},i::Integer,tols::Vector{Float64})
 
     if Kb<tols[1] ||  Kz<tols[2]
         b=(P+Q)*wz*wz
-    else  # recompute in Double
-        Qout=1
-        shiftd=map(Double,A.D[i])
-        Dd=[Double{Float64}[Double(A.D[k])-shiftd for k=1:i-1]; 
-            Double{Float64}[Double(A.D[k])-shiftd for
+    else  # recompute in Double or BigFloat
+        if Kz<eps()^2 
+            Type=Double
+            Qout=1
+        else
+        # Example of a matrix where BigFloat is neeed, courtesy of Stan Eisenstat, is:
+        # A=SymArrow([1+eps(), 1-eps(), 0,-1+2*eps(), -1-2*eps()],[2,2,eps()^4,1,1.0],6.0,5)
+            Type=BigFloat
+            Qout=50
+        end
+        shiftd=map(Type,A.D[i])
+        Dd=[[Type(A.D[k])-shiftd for k=1:i-1]; 
+            [Type(A.D[k])-shiftd for
                             k=i+1:length(A.D)]]
-        wzd=Double(A.z[i])
-        ad=Double(A.a)-shiftd
+        wzd=Type(A.z[i])
+        ad=Type(A.a)-shiftd
 
-        Pd,Qd=map(Double,(0.0,0.0))
+        Pd,Qd=map(Type,(0.0,0.0))
         
         for k=1:i-1
-            Dd[k].hi>0.0 ? Pd+=Double(A.z[k])^2/Dd[k] :
+            map(Float64,Dd[k])>0.0 ? Pd+=Double(A.z[k])^2/Dd[k] :
             Qd+=Double(A.z[k])^2/Dd[k]
         end
         
         for k=i:nn
-            Dd[k].hi>0.0 ? Pd+=Double(A.z[k+1])^2/Dd[k] :
+            map(Float64,Dd[k])>0.0 ? Pd+=Double(A.z[k+1])^2/Dd[k] :
             Qd+=Double(A.z[k+1])^2/Dd[k]
             # @show P,Q
         end 
 
-        ad.hi<0 ?   Pd=Pd-ad : Qd=Qd-ad 
+        map(Float64,ad)<0 ?   Pd=Pd-ad : Qd=Qd-ad 
 
         bd=(Pd+Qd)/(wzd*wzd)
-        b=bd.hi+bd.lo
+        b=map(Float64,bd)
     end
 
     if i<A.i 
@@ -186,8 +194,29 @@ function inv{T}(A::SymArrow{T}, shift::Float64, tolr::Float64)
         #    Dd[k].hi>0.0 ? Pd=Pd+Double(A.z[k])^2/Dd[k] : Qd=Qd+Double(A.z[k])^2/Dd[k]
         # end
         ad.hi+ad.lo<0 ? Pd=Pd-ad : Qd=Qd-ad
-        r=Double(1.0)/(Pd+Qd)
-        rho=-(r.hi+r.lo)
+        if Pd+Qd!=Double(0.0,0.0)
+            Krho=Float64((Pd-Qd)/abs(Pd+Qd))
+            r=Double(1.0)/(Pd+Qd)
+            rho=-(r.hi+r.lo)
+        else
+        # Here we need quadruple working precision. We are using BigFloat.
+        # Example of a matrix where this is neeed, courtesy of Stan Eisenstat, is:
+        # A=SymArrow([1+eps(), 1-eps(), -1+2*eps(), -1-2*eps()],[2,2,1,1.0],6.0,5) 
+            Qout=100
+            Pd,Qd=map(BigFloat,(0.0,0.0))
+            shiftd=BigFloat(shift)
+            ad=BigFloat(A.a)-shiftd
+            for k=1:A.i-1
+                D[k]>0.0 ? Pd=Pd+BigFloat(A.z[k])^2/(BigFloat(A.D[k])-shiftd) : Qd=Qd+BigFloat(A.z[k])^2/(BigFloat(A.D[k])-shiftd)
+            end
+            for k=A.i:n
+                D[k]>0.0 ? Pd=Pd+BigFloat(A.z[k])^2/(BigFloat(A.D[k])-shiftd) : Qd=Qd+BigFloat(A.z[k])^2/(BigFloat(A.D[k])-shiftd)
+            end
+            ad<0 ? Pd=Pd-ad : Qd=Qd-ad
+            Krho=Float64((Pd-Qd)/abs(Pd+Qd))
+            r=BigFloat(-1.0)/(Pd+Qd)
+            rho=Float64(r)
+        end
     end
 
     # returns the following
@@ -410,7 +439,7 @@ function  eig{T}( A::SymArrow{T},k::Integer,tols::Vector{Float64})
                 # Return this - shift the eigenvalue back and normalize the vector
                 lambda, v = mu1+sigma1, v/norm(v)
             end
-            Qout==1 && (Qout=Qout+2)
+            Qout=Qout+2*Qout1
         end
 
         # Remedy according to Remark 1 - we recompute the the eigenvalue
@@ -422,7 +451,7 @@ function  eig{T}( A::SymArrow{T},k::Integer,tols::Vector{Float64})
                 # println("Remedy 1 ")
                 # Compute the inverse of the original arrowhead (DPR1)
                 Ainv,Krho,Qout1 = inv(A,0.0,tols[4]) # Ainv is Float64
-                Qout==1 && (Qout=Qout+4)
+                Qout=Qout+4*Qout1
                 if abs(Ainv.r)==Inf
                     lambda=0.0
                 else                
