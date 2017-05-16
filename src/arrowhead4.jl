@@ -139,8 +139,9 @@ function inv{T}(A::SymDPR1{T}, shift::Float64, tolr::Float64)
         end
 
         A.r > 0 ?   Pd+=Double(1.0)/Double(A.r)  : Qd+=Double(1.0)/Double(A.r)
-        if Pd+Qd!=Double(0.0,0.0)
-            Krho=Float64((Pd-Qd)/abs(Pd+Qd))
+        Krho=Float64((Pd-Qd)/abs(Pd+Qd))
+        
+        if Krho<tolr/eps()
             r=Double(1.0)/(Pd+Qd)
             rho=-(r.hi+r.lo)
         else
@@ -156,8 +157,9 @@ function inv{T}(A::SymDPR1{T}, shift::Float64, tolr::Float64)
 
             A.r > 0 ?   Pd+=BigFloat(1.0)/BigFloat(A.r)  : Qd+=BigFloat(1.0)/BigFloat(A.r)
             Krho=Float64((Pd-Qd)/abs(Pd+Qd))
-            r=BigFloat(-1.0)/(Pd+Qd)
-            rho=Float64(r)
+            @show Pd,Qd
+            r=BigFloat(1.0)/(Pd+Qd)
+            rho=-Float64(r)
         end
     end
     # returns the following
