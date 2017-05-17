@@ -84,13 +84,13 @@ function inv{T}(A::SymArrow{T},i::Integer,tols::Vector{Float64})
         Pd,Qd=map(Type,(0.0,0.0))
         
         for k=1:i-1
-            map(Float64,Dd[k])>0.0 ? Pd+=Double(A.z[k])^2/Dd[k] :
-            Qd+=Double(A.z[k])^2/Dd[k]
+            map(Float64,Dd[k])>0.0 ? Pd+=Type(A.z[k])^2/Dd[k] :
+            Qd+=Type(A.z[k])^2/Dd[k]
         end
         
         for k=i:nn
-            map(Float64,Dd[k])>0.0 ? Pd+=Double(A.z[k+1])^2/Dd[k] :
-            Qd+=Double(A.z[k+1])^2/Dd[k]
+            map(Float64,Dd[k])>0.0 ? Pd+=Type(A.z[k+1])^2/Dd[k] :
+            Qd+=Type(A.z[k+1])^2/Dd[k]
             # @show P,Q
         end 
 
@@ -98,6 +98,7 @@ function inv{T}(A::SymArrow{T},i::Integer,tols::Vector{Float64})
 
         bd=(Pd+Qd)/(wzd*wzd)
         b=map(Float64,bd)
+# @show b, b-(bd.hi+bd.lo)
     end
 
     if i<A.i 
@@ -388,16 +389,8 @@ function  eig{T}( A::SymArrow{T},k::Integer,tols::Vector{Float64})
         nu1=max(sumabs(Ainv.z)+abs(Ainv.a), nu1)
 
         Knu=nu1/abs(nu)
-        if Knu<tols[3]
-            # Accuracy is fine, compute the eigenvector
-            mu = 1.0/nu
-            # v=[ A.z./((A.D-sigma)-mu);-1.0]
-            for l=1:n-1
-            	v[l] = A.z[l]/((A.D[l]-sigma)-mu)
-            end 
-            v[n]=-1.0
-            lambda, v = mu+sigma, v/norm(v)
-        else
+
+        while  Knu>tols[3]
             # Remedies according to Remark 3 - we shift between original
             # eigenvalues and compute DPR1 matrix
             # 1/nu1+sigma, 1/nu+sigma
@@ -407,7 +400,7 @@ function  eig{T}( A::SymArrow{T},k::Integer,tols::Vector{Float64})
             sigma1=(nu1+nu)/(2.0*nu*nu1)+sigma
 
             if findfirst(A.D-sigma1,0.0)>0 # we came back with a pole
-                # recompute sigmav more accurately according with dekker
+                # recompute sigmav more accurately with Dekker
                 sigmav=(Double(nu1)+Double(nu))/(Double(2.0)*Double(nu)*Double(nu1))+Double(sigma)
                 # Compute the inverse of the shifted arrowhead (DPR1)
                 Ainv,Qout1=inv(A,sigmav) # Ainv is Float64
@@ -425,28 +418,44 @@ function  eig{T}( A::SymArrow{T},k::Integer,tols::Vector{Float64})
                 # Shift the eigenvalue back in Double
                 lam = Double(1.0)/Double(nu1)+sigmav
                 # Return this
-                lambda,v = lam.hi+lam.lo, v/norm(v)       
+                lambda,v = lam.hi+lam.lo, v/norm(v)
+                return lambda,v,i,Kb,Kz,Knu,Krho,Qout
             else
                 # Compute the inverse of the shifted arrowhead (DPR1)
                 Ainv, Krho,Qout1=inv(A,sigma1,tols[4]) # Ainv is Float64
                 # Compute the eigenvalue by bisect for DPR1
 	        # Note: instead of bisection could use dlaed4 (need a wrapper) but
 	        # it is not faster. There norm(u)==1
-                nu1= bisect(Ainv,side)
-                mu1=1.0/nu1 
+                nu= bisect(Ainv,side)
+                if side=='R' && A.D[1]>0.0 && nu<0.0
+                    nu=bisect(Ainv,'L')
+                end
+                mu=1.0/nu 
+                nu1=maxabs(Ainv.D)+abs(Ainv.r)*dot(Ainv.u,Ainv.u)
+                Knu=nu1/abs(nu)
+                sigma=sigma1
                 # standard v
-                v=[ A.z./((A.D-sigma1)-mu1);-1.0]
+                # v=[ A.z./((A.D-sigma1)-mu1);-1.0]
                 # Return this - shift the eigenvalue back and normalize the vector
-                lambda, v = mu1+sigma1, v/norm(v)
+                # lambda, v = mu1+sigma1, v/norm(v)
             end
             Qout=Qout+2*Qout1
         end
+
+        # Accuracy is fine, compute the eigenvector
+        mu = 1.0/nu
+        # v=[ A.z./((A.D-sigma)-mu);-1.0]
+        for l=1:n-1
+            v[l] = A.z[l]/((A.D[l]-sigma)-mu)
+        end 
+        v[n]=-1.0
+        lambda, v = mu+sigma, v/norm(v)
 
         # Remedy according to Remark 1 - we recompute the the eigenvalue
         # near zero from the inverse of the original matrix (a DPR1 matrix).  
         if (abs(A.D[i])+abs(1.0/nu))/abs(lambda)>tols[5]
 
-            if k==1 && A.D[1]<0.0 || k==n && A.D[n-1]>0.0 || i<n-1 && side=='L' && sign(A.D[i])+sign(A.D[i+1])==0 ||
+            if k==1 && A.D[1]<0.0 || k==n && A.D[n-1]>0.0 || i<n-1 && side=='L' && sign(A.D[i])+sign(A.D[i+1])==0 || i>1
                 side=='R' && sign(A.D[i])+sign(A.D[i-1])==0
                 # println("Remedy 1 ")
                 # Compute the inverse of the original arrowhead (DPR1)

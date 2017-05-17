@@ -288,19 +288,8 @@ function  eig( A::SymDPR1,k::Integer,tols::Vector{Float64})
         nu1=max(sumabs(Ainv.z)+abs(Ainv.a), nu1)
 
         Knu=nu1/abs(nu)
-        if Knu<tols[3]
-            # Accuracy is fine, compute the eigenvector
-            mu = 1.0/nu
-            # v=[ A.u./((A.D-sigma)-mu)]
-            for l=1:n                
-                v[l]= A.u[l]/((A.D[l]-sigma)-mu)
-            end
-            #        for k=1:n-1
-            #	   v[k] = A.z[k]/((A.D[k]-sigma)-mu)
-            #        end 
-            #        v[n]=-one
-            lambda, v = mu+sigma, v/norm(v)
-        else
+
+        while Knu>tols[3]
             # Remedies according to Remark 3 - we shift between original
             # eigenvalues and compute DPR1 matrix
             # 1/nu1+sigma, 1/nu+sigma
@@ -328,28 +317,44 @@ function  eig( A::SymDPR1,k::Integer,tols::Vector{Float64})
                 # Shift the eigenvalue back in Double
                 lam = Double(1.0)/Double(nu1)+sigmav
                 # Return this
-                lambda,v = lam.hi+lam.lo, v/norm(v)       
+                lambda,v = lam.hi+lam.lo, v/norm(v)
+                return lambda,v,i,Kb,Kz,Knu,Krho,Qout
             else
                 # Compute the inverse of the shifted arrowhead (DPR1)
                 Ainv, Krho,Qout1=inv(A,sigma1,tols[4]) # Ainv is Float64
                 # Compute the eigenvalue by bisect for DPR1
 	        # Note: instead of bisection could use dlaed4 (need a wrapper) but
 	        # it is not faster. There norm(u)==1
-                nu1= bisect(Ainv,side)
-                mu1=1.0/nu1 
+                nu= bisect(Ainv,side)
+                # Check the code below for DPR1
+                # if side=='R' && A.D[1]>0.0 && nu<0.0
+                #     nu=bisect(Ainv,'L')
+                # end
+                mu=1.0/nu 
+                nu1=maxabs(Ainv.D)+abs(Ainv.r)*dot(Ainv.u,Ainv.u)
+                Knu=nu1/abs(nu)
+                sigma=sigma1
                 # standard v
-                v=A.u./((A.D-sigma1)-mu1)
+                # v=A.u./((A.D-sigma1)-mu1)
                 # Return this - shift the eigenvalue back and normalize the vector
-                lambda, v = mu1+sigma1, v/norm(v)
+                # lambda, v = mu1+sigma1, v/norm(v)
             end
             Qout=Qout+2*Qout1
         end
+        # Accuracy is fine, compute the eigenvector
+        mu = 1.0/nu
+        # v=[ A.u./((A.D-sigma)-mu)]
+        for l=1:n                
+            v[l]= A.u[l]/((A.D[l]-sigma)-mu)
+        end
+        lambda, v = mu+sigma, v/norm(v)
+
 
         # Remedy according to Remark 1 - we recompute the the eigenvalue
         # near zero from the inverse of the original matrix (a DPR1 matrix).  
         if (abs(A.D[i])+abs(1.0/nu))/abs(lambda)>tols[5]
 
-            if (k==1 && A.D[1]<0.0 || side=='L' && sign(A.D[i])+sign(A.D[i+1])==0 ||
+            if (k==1 && A.D[1]<0.0 || side=='L' && sign(A.D[i])+sign(A.D[i+1])==0 || i>1 &&
                 side=='R' && sign(A.D[i])+sign(A.D[i-1])==0)
                 # println("Remedy 1 ")
                 # Compute the inverse of the original arrowhead (DPR1)
