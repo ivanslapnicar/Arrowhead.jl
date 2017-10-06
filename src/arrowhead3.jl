@@ -65,7 +65,7 @@ function inv{T}(A::SymArrow{T},i::Integer,tols::Vector{Float64})
     if Kb<tols[1] ||  Kz<tols[2]
         b=(P+Q)*wz*wz
     else  # recompute in Double or BigFloat
-        if Kz<eps()^2 
+        if Kz<1.0/eps()^2 
             Type=Double
             Qout=1
         else
