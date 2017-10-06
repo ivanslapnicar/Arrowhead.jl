@@ -12,8 +12,8 @@ function inv{T}(A::SymDPR1{T},i::Integer,tols::Vector{Float64})
     # Kb - condition Kb, Kz - condition Kz, Qout = 1 / 0 - double was / was not used 
 
     n=length(A.D)
-    D=Array(T,n-1)
-    z=Array(T,n-1)
+    D=Array{T}(n-1)
+    z=Array{T}(n-1)
     wz=one(T)/A.u[i]
     shift=A.D[i]
 
@@ -44,10 +44,10 @@ function inv{T}(A::SymDPR1{T},i::Integer,tols::Vector{Float64})
 
     # compute Kz
 
-    Kz=(sumabs(A.u)-abs(A.u[i]))*abs(wz)
+    Kz=(sum(abs,A.u)-abs(A.u[i]))*abs(wz)
 
 
-    # Kz=maxabs(A.z)*abs(wz)
+    # Kz=max(abs,A.z)*abs(wz)
 
     if Kb<tols[1] ||  Kz<tols[2]
         b=(P+Q)*wz*wz
@@ -102,8 +102,8 @@ function inv{T}(A::SymDPR1{T}, shift::Float64, tolr::Float64)
     # Krho - condition Krho, Qout = 1 / 0 - Double was / was not used
 
     n=length(A.D)
-    D=Array(T,n)
-    u=Array(T,n)
+    D=Array{T}(n)
+    u=Array{T}(n)
 
     for k=1:n
         D[k]=one(T)/(A.D[k]-shift)
@@ -214,8 +214,8 @@ function inv{T}(A::SymDPR1{T}, shift::Double)
     # returns the following
     # SymDPR1(T[x.hi+x.lo for x=D],T[x.hi+x.lo for x=u],rho), Qout
 
-    D1=Array(T,n)
-    u1=Array(T,n)
+    D1=Array{T}(n)
+    u1=Array{T}(n)
 
     for k=1:n
         D1[k]=D[k].hi+D[k].lo
@@ -280,12 +280,12 @@ function  eig( A::SymDPR1,k::Integer,tols::Vector{Float64})
     else
         # standard case, full computation
         # nu1 is the F- or 1-norm of the inverse of the shifted matrix
-        # nu10=maximum([sum(abs(Ainv.z))+abs(Ainv.a), maximum(abs(Ainv.D)+abs(Ainv.z))])
+        # nu10=maximum([sum(abs,Ainv.z)+abs(Ainv.a), maximum(abs.(Ainv.D)+abs.(Ainv.z))])
         nu1=0.0
         for k=1:n-1
             nu1=max(nu1,abs(Ainv.D[k])+abs(Ainv.z[k]))
         end
-        nu1=max(sumabs(Ainv.z)+abs(Ainv.a), nu1)
+        nu1=max(sum(abs,Ainv.z)+abs(Ainv.a), nu1)
 
         Knu=nu1/abs(nu)
 
@@ -331,7 +331,7 @@ function  eig( A::SymDPR1,k::Integer,tols::Vector{Float64})
                 #     nu=bisect(Ainv,'L')
                 # end
                 mu=1.0/nu 
-                nu1=maxabs(Ainv.D)+abs(Ainv.r)*dot(Ainv.u,Ainv.u)
+                nu1=maximum(abs,Ainv.D)+abs(Ainv.r)*dot(Ainv.u,Ainv.u)
                 Knu=nu1/abs(nu)
                 sigma=sigma1
                 # standard v

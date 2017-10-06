@@ -30,7 +30,7 @@ function rootsah(pol::Union{Poly{BigInt},Poly{BigFloat}}, D::Vector{Float64})
     # DD=map(Double,Dm)
     # oneD=Double(one(T))
 
-    s=Array(BigFloat,n-1)
+    s=Array{BigFloat}(n-1)
     for i=1:n-1
         s[i]=one(T)
     end
@@ -41,7 +41,7 @@ function rootsah(pol::Union{Poly{BigInt},Poly{BigFloat}}, D::Vector{Float64})
     end
 
     # Compute t's
-    t=Array(BigFloat,n-1)
+    t=Array{BigFloat}(n-1)
     for j=1:n-1
         h=one(T)
         for i=1:j-1
@@ -61,12 +61,12 @@ function rootsah(pol::Union{Poly{BigInt},Poly{BigFloat}}, D::Vector{Float64})
     end
     alphaD=-alphaD
     #  Compute z
-    zD=Array(BigFloat,n-1) 
+    zD=Array{BigFloat}(n-1) 
     for i=1:n-1
         zD[i]=sqrt((-s[i])/(t[i]*p[1]))
     end
     
-    z=Array(Float64,n-1)
+    z=Array{Float64}(n-1)
     for i=1:n-1
         z[i]=Float64(zD[i])
     end
@@ -102,8 +102,8 @@ function inv{T}(A::SymArrow{T},zD::Vector{BigFloat}, alphaD::BigFloat,i::Int64,t
     # Kb - condition Kb, Kz - condition Kz, Qout = 1 / 0 - double was / was not used 
 
     n=length(A.D)
-    D=Array(T,n)
-    z=Array(T,n)
+    D=Array{T}(n)
+    z=Array{T}(n)
     wz=1/A.z[i]
     shift=A.D[i]
 
@@ -136,7 +136,7 @@ function inv{T}(A::SymArrow{T},zD::Vector{BigFloat}, alphaD::BigFloat,i::Int64,t
     a<0 ? P=P-a : Q=Q-a
 
     Kb=(P-Q)/abs(P+Q)
-    Kz=maxabs(A.z)*abs(wz)
+    Kz=maximum(abs,A.z)*abs(wz)
 
     if Kb<tols[1] ||  Kz<tols[2]
         b=(P+Q)*wz*wz
@@ -420,7 +420,7 @@ function  eig{T}( A::SymArrow{T},zD::Vector{BigFloat},alphaD::BigFloat,k::Int64,
         for l=1:n-1
             nu1=max(nu1,abs(Ainv.D[l])+abs(Ainv.z[l]))
         end
-        nu1=max(sumabs(Ainv.z)+abs(Ainv.a), nu1)
+        nu1=max(sum(abs,Ainv.z)+abs(Ainv.a), nu1)
 
         Knu=nu1/abs(nu)
         if Knu<tols[3]

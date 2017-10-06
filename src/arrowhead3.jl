@@ -26,8 +26,8 @@ function inv{T}(A::SymArrow{T},i::Integer,tols::Vector{Float64})
     # Kb - condition Kb, Kz - condition Kz, Qout = 1 / 0 - double was / was not used 
 
     n=length(A.D)
-    D=Array(T,n)
-    z=Array(T,n)
+    D=Array{T}(n)
+    z=Array{T}(n)
     wz=1/A.z[i]
     shift=A.D[i]
 
@@ -60,7 +60,7 @@ function inv{T}(A::SymArrow{T},i::Integer,tols::Vector{Float64})
     a<0 ? P=P-a : Q=Q-a
 
     Kb=(P-Q)/abs(P+Q)
-    Kz=maxabs(A.z)*abs(wz)
+    Kz=maximum(abs,A.z)*abs(wz)
 
     if Kb<tols[1] ||  Kz<tols[2]
         b=(P+Q)*wz*wz
@@ -134,8 +134,8 @@ function inv{T}(A::SymArrow{T}, shift::Float64, tolr::Float64)
     # Krho - condition Krho, Qout = 1 / 0 - Double was / was not used 
 
     n=length(A.D)
-    D=Array(T,n+1)
-    u=Array(T,n+1)
+    D=Array{T}(n+1)
+    u=Array{T}(n+1)
 
     # Ds=A.D-shift
 
@@ -299,8 +299,8 @@ function inv{T}(A::SymArrow{T}, shift::Double)
     rho=-(r.hi+r.lo)
 
     # returns the following
-    D1=Array(T,n+1)
-    u1=Array(T,n+1)
+    D1=Array{T}(n+1)
+    u1=Array{T}(n+1)
     for k=1:n+1
         D1[k]=D[k].hi+D[k].lo
     end
@@ -381,12 +381,12 @@ function  eig{T}( A::SymArrow{T},k::Integer,tols::Vector{Float64})
     else
         # standard case, full computation
         # nu1 is the F- or 1-norm of the inverse of the shifted matrix
-        # nu10=maximum([sum(abs(Ainv.z))+abs(Ainv.a), maximum(abs(Ainv.D)+abs(Ainv.z))])
+        # nu10=maximum([sum(abs.(Ainv.z))+abs(Ainv.a), maximum(abs,Ainv.D)+abs.(Ainv.z))])
         nu1=0.0
         for l=1:n-1
             nu1=max(nu1,abs(Ainv.D[l])+abs(Ainv.z[l]))
         end
-        nu1=max(sumabs(Ainv.z)+abs(Ainv.a), nu1)
+        nu1=max(sum(abs,Ainv.z)+abs(Ainv.a), nu1)
 
         Knu=nu1/abs(nu)
 
@@ -431,7 +431,7 @@ function  eig{T}( A::SymArrow{T},k::Integer,tols::Vector{Float64})
                     nu=bisect(Ainv,'L')
                 end
                 mu=1.0/nu 
-                nu1=maxabs(Ainv.D)+abs(Ainv.r)*dot(Ainv.u,Ainv.u)
+                nu1=maximum(abs,Ainv.D)+abs(Ainv.r)*dot(Ainv.u,Ainv.u)
                 Knu=nu1/abs(nu)
                 sigma=sigma1
                 # standard v
@@ -599,9 +599,9 @@ function bisect{T}(A::SymArrow{T}, side::Char)
     
     # Determine the starting interval for bisection, [left; right]
     # left, right = side == 'L' ? {minimum([A.D-abs(A.z),A.a-sum(abs(A.z))]), minimum(A.D)} : 
-    #   {maximum(A.D),maximum([A.D+abs(A.z),A.a+sum(abs(A.z))])}
+    #   {maximum(A.D),maximum([A.D+abs.(A.z),A.a+sum(abs,A.z)])}
     
-    absAz = abs(A.z)
+    absAz = abs.(A.z)
     if side == 'L'
         left  = minimum(A.D - absAz)::T
         left  = min(left, A.a - sum(absAz))::T

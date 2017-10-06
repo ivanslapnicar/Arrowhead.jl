@@ -36,9 +36,9 @@ function inv{T}(A::HalfArrow{T},i::Integer,tols::Vector{Float64})
     # Kb - condition Kb, Kz - condition Kz, Qout = 1 / 0 - double was / was not used 
     
     n=length(A.D)
-    D=Array(T,n)
-    z=Array(T,n)
-    z1=Array(T,n)
+    D=Array{T}(n)
+    z=Array{T}(n)
+    z1=Array{T}(n)
     z1=A.z[1:n].*A.D
     
     wz=1/(z1[i])
@@ -77,7 +77,7 @@ function inv{T}(A::HalfArrow{T},i::Integer,tols::Vector{Float64})
     a<0 ? P=P-a : Q=Q-a
     
     Kb=(P-Q)/abs(P+Q)
-    Kz=maxabs(z1)*abs(wz)
+    Kz=maximum(abs,z1)*abs(wz)
     
     if Kb<tols[1] ||  Kz<tols[2]
         b=(P+Q)*wz*wz
@@ -133,9 +133,9 @@ function inv{T}(A::HalfArrow{T}, shift::Float64, tolr::Float64)
     # Krho - condition Krho, Qout = 1 / 0 - Double was / was not used 
     
     n=length(A.D)
-    D=Array(T,n+1)
-    u=Array(T,n+1)
-    z1=Array(T,n)
+    D=Array{T}(n+1)
+    u=Array{T}(n+1)
+    z1=Array{T}(n)
     z1=A.z[1:n].*A.D
     
     # Ds=A.D-shift
@@ -220,7 +220,7 @@ function inv{T}(A::HalfArrow{T}, shift::Double)
     oned=Double(1.0)
     zerod=Double(0.0)
     
-    # z1=Array(T,n)
+    # z1=Array{T}(n)
     # z1=A.z[1:n].*A.D
     
     # D[1:n]=map(Double,A.D)-shift
@@ -256,8 +256,8 @@ function inv{T}(A::HalfArrow{T}, shift::Double)
     rho=-(r.hi+r.lo)
     
     # returns the following
-    D1=Array(T,n+1)
-    u1=Array(T,n+1)
+    D1=Array{T}(n+1)
+    u1=Array{T}(n+1)
     for k=1:n+1
         D1[k]=D[k].hi+D[k].lo
     end
@@ -295,7 +295,7 @@ function  svd( A::HalfArrow,k::Integer,tols::Vector{Float64})
     Qout=0
     u=zeros(length(A.z))
     v=zeros(n)
-    z1=Array(Float64,n)
+    z1=Array{Float64}(n)
     z1=A.z[1:n-1].*A.D
     
     # Kz is former kappa_nu
@@ -344,12 +344,12 @@ function  svd( A::HalfArrow,k::Integer,tols::Vector{Float64})
     else
         # standard case, full computation
         # nu1 is the F- or 1-norm of the inverse of the shifted matrix
-        # nu10=maximum([sum(abs(Ainv.z))+abs(Ainv.a), maximum(abs(Ainv.D)+abs(Ainv.z))])
+        # nu10=maximum([sum(abs,Ainv.z)+abs(Ainv.a), maximum(abs,Ainv.D)+abs.(Ainv.z))])
         nu1=0.0
         for k=1:n-1
             nu1=max(nu1,abs(Ainv.D[k])+abs(Ainv.z[k]))
         end
-        nu1=max(sumabs(Ainv.z)+abs(Ainv.a), nu1)
+        nu1=max(sum(abs,Ainv.z)+abs(Ainv.a), nu1)
         
         Knu=nu1/abs(nu)
         if Knu<tols[3]
@@ -375,7 +375,7 @@ function  svd( A::HalfArrow,k::Integer,tols::Vector{Float64})
             nu1=-sign(nu)*nu1
             sigma1=(nu1+nu)/(2.0*nu*nu1)+sigma^2
             
-            if findfirst(abs(A.D)-sqrt(sigma1),0.0)>0 # we came back with a pole
+            if findfirst(abs.(A.D)-sqrt(sigma1),0.0)>0 # we came back with a pole
                 # recompute sigmav more accurately according with dekker
                 sigmav=(Double(nu1)+Double(nu))/(Double(2.0)*Double(nu)*Double(nu1))+Double(sigma)^2
                 # Compute the inverse of the shifted arrowhead (DPR1)
@@ -481,8 +481,8 @@ function svd(A::HalfArrow, tols::Vector{Float64})
     n0=n
     
     # Ordering the matrix
-    signD=sign(A.D)
-    D=abs(A.D)
+    signD=sign.(A.D)
+    D=abs.(A.D)
     is=sortperm(D,rev=true)
     D=D[is]
     signD=signD[is]

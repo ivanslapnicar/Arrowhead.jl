@@ -61,7 +61,7 @@ function rootsah(pol::Union{Poly{Float32},Poly{Float64},Poly{Int32},Poly{Int64}}
     pD=map(Double,p)
     DD=map(Double,Dm)
     oneD=Double(one(T))
-    s=Array(Double{T},n-1)
+    s=Array{Double{T}}(n-1)
     for i=1:n-1
         s[i]=oneD
     end
@@ -72,7 +72,7 @@ function rootsah(pol::Union{Poly{Float32},Poly{Float64},Poly{Int32},Poly{Int64}}
     end
 
     # Compute t's
-    t=Array(Double{T},n-1)
+    t=Array{Double{T}}(n-1)
     for j=1:n-1
         h=oneD
         for i=1:j-1
@@ -93,13 +93,13 @@ function rootsah(pol::Union{Poly{Float32},Poly{Float64},Poly{Int32},Poly{Int64}}
     # alphaD=-alphaD
     alphaD=Double(-alphaD.hi,-alphaD.lo)
     #  Compute z
-    zD=Array(Double{T},n-1) 
+    zD=Array{Double{T}}(n-1) 
     for i=1:n-1
         #         zD[i]=sqrt((-s[i])/(t[i]*pD[1]))
         zD[i]=sqrt(Double(-s[i].hi,-s[i].lo)/(t[i]*pD[1]))
     end
     
-    z=Array(Float64,n-1)
+    z=Array{Float64}(n-1)
     for i=1:n-1
         z[i]=Float64(zD[i].lo+zD[i].hi)
     end
@@ -131,8 +131,8 @@ function inv{T}(A::SymArrow{T},zD::Vector{Double{T}}, alphaD::Double{T},i::Int64
     # Kb - condition Kb, Kz - condition Kz, Qout = 1 / 0 - double was / was not used 
 
     n=length(A.D)
-    D=Array(T,n)
-    z=Array(T,n)
+    D=Array{T}(n)
+    z=Array{T}(n)
     wz=1/A.z[i]
     shift=A.D[i]
 
@@ -165,7 +165,7 @@ function inv{T}(A::SymArrow{T},zD::Vector{Double{T}}, alphaD::Double{T},i::Int64
     a<0 ? P=P-a : Q=Q-a
 
     Kb=(P-Q)/abs(P+Q)
-    Kz=maxabs(A.z)*abs(wz)
+    Kz=maximum(abs,A.z)*abs(wz)
 
     if Kb<tols[1] ||  Kz<tols[2]
         b=(P+Q)*wz*wz
@@ -232,8 +232,8 @@ function inv{T}(A::SymArrow{T}, zD::Vector{Double{T}}, alphaD::Double{T}, shift:
     # Krho - condition Krho, Qout = 1 / 0 - Double was / was not used 
 
     n=length(A.D)
-    D=Array(T,n+1)
-    u=Array(T,n+1)
+    D=Array{T}(n+1)
+    u=Array{T}(n+1)
 
     # Ds=A.D-shift
 
@@ -362,8 +362,8 @@ function inv{T}(A::SymArrow{T}, zD::Vector{Double{T}}, alphaD::Double{T}, shift:
     rho=Float64(-(r.hi+r.lo))
 
     # returns the following
-    D1=Array(T,n+1)
-    u1=Array(T,n+1)
+    D1=Array{T}(n+1)
+    u1=Array{T}(n+1)
     for k=1:n+1
         D1[k]=Float64(D[k].hi+D[k].lo)
     end
@@ -443,12 +443,12 @@ function  eig{T}( A::SymArrow{T},zD::Vector{Double{T}},alphaD::Double{T},k::Int6
     else
         # standard case, full computation
         # nu1 is the F- or 1-norm of the inverse of the shifted matrix
-        # nu10=maximum([sum(abs(Ainv.z))+abs(Ainv.a), maximum(abs(Ainv.D)+abs(Ainv.z))])
+        # nu10=maximum([sum(abs,Ainv.z)+abs(Ainv.a), maximum(abs.(Ainv.D)+abs.(Ainv.z))])
         nu1=0.0
         for l=1:n-1
             nu1=max(nu1,abs(Ainv.D[l])+abs(Ainv.z[l]))
         end
-        nu1=max(sumabs(Ainv.z)+abs(Ainv.a), nu1)
+        nu1=max(sum(abs,Ainv.z)+abs(Ainv.a), nu1)
 
         Knu=nu1/abs(nu)
         if Knu<tols[3]
