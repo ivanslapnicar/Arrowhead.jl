@@ -11,7 +11,7 @@ using DoubleDouble # Jiahao's has error, this is Simon's version
 # using DoublelengthFloat
 
 # Define a Symmetric Arrow Matrix Type
-immutable SymArrow{T<:Real} <: AbstractMatrix{T}
+struct SymArrow{T} <: AbstractMatrix{T}
     D::Vector{T} # diagonal
     z::Vector{T} # 1st row[2:n]
     a::T # arrow top value
@@ -43,7 +43,7 @@ full(A::SymArrow) =[A[i,j] for i=1:size(A,1), j=1:size(A,2)]
 #-------------------------------------------------------
 
 # Define a Symmetric Diagonal+Rank-One Type
-immutable SymDPR1{T} <: AbstractMatrix{T}
+struct SymDPR1{T} <: AbstractMatrix{T}
     D::Vector{T} # diagonal
     u::Vector{T} # rank one, length n
     r::T # rho

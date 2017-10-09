@@ -351,7 +351,7 @@ function  eig{T}( A::SymArrow{T},k::Integer,tols::Vector{Float64})
         Dtemp = A.D-A.D[k]
         atemp = A.a-A.D[k]
         middle = Dtemp[k-1]/2.0
-        Fmiddle = (atemp-middle)-sum(A.z.^2./(Dtemp-middle))
+        Fmiddle = (atemp-middle)-sum(A.z.^2 ./(Dtemp-middle))
         # middle=(A.D[k-1]-A.D[k])/2.0
         # Fmiddle=0.0
         # for l=1:n-1
@@ -467,7 +467,7 @@ function  eig{T}( A::SymArrow{T},k::Integer,tols::Vector{Float64})
                     # Here we do not need bisection. We compute the Rayleigh
                     # quotient by using already computed vectors which is
                     # componentwise accurate
-                    nu1=sum(v.^2.*Ainv.D)+Ainv.r*sum(v.*Ainv.u)^2;
+                    nu1=sum(v.^2 .*Ainv.D)+Ainv.r*sum(v.*Ainv.u)^2;
                     lambda=1.0/nu1
                 end
             end

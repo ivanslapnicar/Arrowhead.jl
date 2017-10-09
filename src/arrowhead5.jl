@@ -1,7 +1,7 @@
 importall Base
 
 # Define a Half Arrow Matrix Type
-immutable HalfArrow{T<:Real} <: AbstractMatrix{T}
+struct HalfArrow{T} <: AbstractMatrix{T}
     D::Vector{T} # diagonal
     z::Vector{T} # last column
 end
