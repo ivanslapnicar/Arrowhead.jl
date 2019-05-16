@@ -1,12 +1,12 @@
 importall Base
 using Base.LinAlg.Givens
 
-# This needs to be executed once 
+# This needs to be executed once
 # Pkg.clone("https://github.com/jiahao/DoublelengthFloat.jl.git")
 # using DoublelengthFloat # by Jiahao Chen or use other by Simon Byrne
 # Pkg.clone("https://github.com/simonbyrne/DoubleDouble.jl.git")
 
-using DoubleDouble # Jiahao's has error, this is Simon's version
+# using DoubleDouble # Jiahao's has error, this is Simon's version
 
 # using DoublelengthFloat
 
@@ -38,7 +38,7 @@ function getindex(A::SymArrow,i::Integer,j::Integer)
 end # getindex
 
 # Dense version of SymArrow
-full(A::SymArrow) =[A[i,j] for i=1:size(A,1), j=1:size(A,2)]
+Matrix(A::SymArrow) =[A[i,j] for i=1:size(A,1), j=1:size(A,2)]
 
 #-------------------------------------------------------
 
@@ -61,5 +61,4 @@ function getindex(A::SymDPR1,i::Integer,j::Integer)
 end # getindex
 
 # Dense version of SymDPR1
-full(A::SymDPR1) =[A[i,j] for i=1:size(A,1), j=1:size(A,2)]
-
+Matrix(A::SymDPR1) =[A[i,j] for i=1:size(A,1), j=1:size(A,2)]
