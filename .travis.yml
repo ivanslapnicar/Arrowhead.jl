@@ -3,10 +3,10 @@ os:
     - linux
 julia:
     - 1.1
-    - nightly
+#     - nightly
 notifications:
   email: false
 before_install:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
 script:
-  - julia -e 'Pkg.init(); Pkg.clone(pwd()); Pkg.test("Arrowhead")'
+  - julia -e 'using Pkg; Pkg.init(); Pkg.clone(pwd()); Pkg.test("Arrowhead")'
