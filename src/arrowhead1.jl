@@ -1,5 +1,7 @@
-importall Base
-using Base.LinAlg.Givens
+# importall Base
+# using Base.LinearAlgebra.Givens
+import Base:size, getindex, convert
+import LinearAlgebra: eigen, inv
 
 # This needs to be executed once
 # Pkg.clone("https://github.com/jiahao/DoublelengthFloat.jl.git")
@@ -20,11 +22,11 @@ end # immutable
 
 # Define its size
 
-size(A::SymArrow, dim::Integer) = length(A.D)+1
-size(A::SymArrow)= size(A,1), size(A,1)
+size(A::SymArrow{T}, dim::Integer) where T = length(A.D)+1
+size(A::SymArrow{T}) where T = size(A,1), size(A,1)
 
 # Index into a SymArrow
-function getindex(A::SymArrow,i::Integer,j::Integer)
+function getindex(A::SymArrow{T},i::Integer,j::Integer) where T
     n=size(A,1)
     if i==j<A.i; return A.D[i]
     elseif i==j>A.i; return A.D[i-1]
@@ -38,7 +40,7 @@ function getindex(A::SymArrow,i::Integer,j::Integer)
 end # getindex
 
 # Dense version of SymArrow
-Matrix(A::SymArrow) =[A[i,j] for i=1:size(A,1), j=1:size(A,2)]
+Matrix(A::SymArrow{T}) where T =[A[i,j] for i=1:size(A,1), j=1:size(A,2)]
 
 #-------------------------------------------------------
 
@@ -51,14 +53,14 @@ end # immutable
 
 # Define its size
 
-size(A::SymDPR1, dim::Integer) = length(A.D)
-size(A::SymDPR1)= size(A,1), size(A,1)
+size(A::SymDPR1{T}, dim::Integer) where T = length(A.D)
+size(A::SymDPR1{T}) where T = size(A,1), size(A,1)
 
 # Index into a SymDPR1
-function getindex(A::SymDPR1,i::Integer,j::Integer)
+function getindex(A::SymDPR1{T},i::Integer,j::Integer) where T
     Aij=A.r*A.u[i]*A.u[j]
     return i==j ? A.D[i]+Aij : Aij
 end # getindex
 
 # Dense version of SymDPR1
-Matrix(A::SymDPR1) =[A[i,j] for i=1:size(A,1), j=1:size(A,2)]
+Matrix(A::SymDPR1{T}) where T =[A[i,j] for i=1:size(A,1), j=1:size(A,2)]

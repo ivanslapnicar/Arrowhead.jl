@@ -16,7 +16,7 @@ end
 
 #-------- Inverses
 
-function inv(A::SymArrow{T},i::Integer,τ::Vector{Float64}=[1e3;10.0n]) where T
+function inv(A::SymArrow{T},i::Integer,τ::Vector{Float64}=[1e3;10.0*length(A.D)]) where T
 
     # COMPUTES: inverse of a SymArrow matrix A, inv(A-A.D[i]*I) which is again SymArrow
     # uses higher precision to compute top of the arrow element accurately, if
@@ -84,19 +84,19 @@ function inv(A::SymArrow{T},i::Integer,τ::Vector{Float64}=[1e3;10.0n]) where T
         Pd,Qd=map(Type,(0.0,0.0))
 
         for k=1:i-1
-            map(Float64,Dd[k])>0.0 ? Pd+=Type(A.z[k])^2/Dd[k] :
+            convert(Float64,Dd[k])>0.0 ? Pd+=Type(A.z[k])^2/Dd[k] :
             Qd+=Type(A.z[k])^2/Dd[k]
         end
 
         for k=i:nn
-            map(Float64,Dd[k])>0.0 ? Pd+=Type(A.z[k+1])^2/Dd[k] :
+            convert(Float64,Dd[k])>0.0 ? Pd+=Type(A.z[k+1])^2/Dd[k] :
             Qd+=Type(A.z[k+1])^2/Dd[k]
         end
 
-        map(Float64,ad)<0 ?   Pd=Pd-ad : Qd=Qd-ad
+        convert(Float64,ad)<0 ?   Pd=Pd-ad : Qd=Qd-ad
 
         bd=(Pd+Qd)/(wzd*wzd)
-        b=map(Float64,bd)
+        b=convert(Float64,bd)
     end
 
     if i<A.i
@@ -280,7 +280,7 @@ end # inv
 
 
 function  eigen( A::SymArrow{T},k::Integer,
-    τ::Vector{Float64}=[1e3,10.0*n,1e3,1e3,1e3]) where T
+    τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,1e3]) where T
 
     # COMPUTES: k-th eigenpair of an ordered irreducible SymArrow
     # A = [diag (D) z; z' alpha]
@@ -313,10 +313,10 @@ function  eigen( A::SymArrow{T},k::Integer,
         σ,i,side = A.D[n-1],n-1,'L'
     else
         # Interior eigenvalues (k in (2,...n-1) ):
-        Dtemp .= A.D.-A.D[k]
+        Dtemp = A.D.-A.D[k]
         atemp = A.a-A.D[k]
         middle = Dtemp[k-1]/2.0
-        Fmiddle = (atemp-middle)-sum(A.z.^2 ./(Dtemp-middle))
+        Fmiddle = (atemp-middle)-sum(A.z.^2 ./(Dtemp.-middle))
         σ,i,side = Fmiddle < 0.0 ? (A.D[k],k,'R') : (A.D[k-1],k-1,'L')
     end
 
@@ -407,8 +407,8 @@ function  eigen( A::SymArrow{T},k::Integer,
         # near zero from the inverse of the original matrix (a DPR1 matrix).
         if (abs(A.D[i])+abs(1.0/ν))/abs(λ)>τ[5]
 
-            if k==1 && A.D[1]<0.0 || k==n && A.D[n-1]>0.0 || i<n-1 && side=='L'
-                && sign(A.D[i])+sign(A.D[i+1])==0 || i>1
+            if k==1 && A.D[1]<0.0 || k==n && A.D[n-1]>0.0 || i<n-1 && side=='L' &&
+                sign(A.D[i])+sign(A.D[i+1])==0 || i>1 &&
                 side=='R' && sign(A.D[i])+sign(A.D[i-1])==0
                 # println("Remedy 1 ")
                 # Compute the inverse of the original arrowhead (DPR1)
@@ -434,7 +434,7 @@ function  eigen( A::SymArrow{T},k::Integer,
 end # eigen(k)
 
 
-function eigen(A::SymArrow{T}, τ::Vector{Float64}=[1e3,10.0*n,1e3,1e3,1e3]) where T
+function eigen(A::SymArrow{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,1e3]) where T
 
     # COMPUTES: all eigenvalues and eigenvectors of a real symmetric SymArrow
     # A = [diag(D) z;z' alpha] (notice, here we assume A.i==n)
@@ -452,7 +452,7 @@ function eigen(A::SymArrow{T}, τ::Vector{Float64}=[1e3,10.0*n,1e3,1e3,1e3]) whe
     is=sortperm(A.D,rev=true)
     D=A.D[is]
     z=A.z[is]
-    U=Matrix{T}(I,n,n)
+    U=Array{T}(I,n,n)
     Λ=zeros(T,n)
     Kb=zeros(T,n); Kz=zeros(T,n); Kν=zeros(T,n); Kρ=zeros(T,n)
     Qout=zeros(Int,n); Sind=zeros(Int,n)
@@ -463,8 +463,8 @@ function eigen(A::SymArrow{T}, τ::Vector{Float64}=[1e3,10.0*n,1e3,1e3,1e3]) whe
     end
 
     #  test for deflation in z
-    z0=find(z.==0)
-    zx=find(z.!=0)
+    z0=findall(iszero,z)
+    zx=findall(!iszero,z)
 
     if isempty(zx)  # nothing to do
         Λ=[A.D;A.a]
@@ -492,8 +492,8 @@ function eigen(A::SymArrow{T}, τ::Vector{Float64}=[1e3,10.0*n,1e3,1e3,1e3]) whe
     # g0=find(abs(g)<eps)
     # gx=find(abs(g)>=eps)
     # Only exact deflation !!
-    g0=find(g.==0.0)
-    gx=find(g.!=0.0)
+    g0=findall(iszero,g)
+    gx=findall(!iszero,g)
     if !isempty(g0)
         # Deflation
         Dgx=D[gx]; zgx=z[gx]
@@ -524,7 +524,7 @@ function eigen(A::SymArrow{T}, τ::Vector{Float64}=[1e3,10.0*n,1e3,1e3,1e3]) whe
 
         # No deflation in D
         for k=1:n
-            Λ[zx[k]],U[zx,zx[k]],Sind[zx[k]],Kb[zx[k]],Kz[zx[k]],Kν[zx[k]],Krho[zx[k]],Qout[zx[k]]=
+            Λ[zx[k]],U[zx,zx[k]],Sind[zx[k]],Kb[zx[k]],Kz[zx[k]],Kν[zx[k]],Kρ[zx[k]],Qout[zx[k]]=
             eigen(SymArrow(D,z,A.a,n),k)
         end
     end
@@ -539,12 +539,12 @@ function eigen(A::SymArrow{T}, τ::Vector{Float64}=[1e3,10.0*n,1e3,1e3,1e3]) whe
     U=U[[isi[1:A.i-1];n0;isi[A.i:n0-1]],es]
 
     # Return this
-    U,Λ,Sind[es],Kb[es],Kz[es],Kν[es],Kρ[es],Qout[es]
+    Λ,U,Sind[es],Kb[es],Kz[es],Kν[es],Kρ[es],Qout[es]
 
 end # eigen (all)
 
 
-function bisect{T}(A::SymArrow{T}, side::Char)
+function bisect(A::SymArrow{T}, side::Char) where T
     # COMPUTES: the leftmost (for side='L') or the rightmost (for side='R') eigenvalue
     # of a SymArrow A = [diag (D) z; z'] by bisection.
     # RETURNS: the eigenvalue

@@ -30,29 +30,29 @@ The package also contains routines for applications:
 #### Arrowhead and DPR1 Eigenvalues
 The file `arrowhead1.jl` contains definitions of types
 `SymArrow` (arrowhead) and `SymDPR1`. Full matrices are accessible
-with `full(A)`.
+with `Matrix(A)`.
 
 The file `arrowhead3.jl` contains routines to generate random symmetric
 arrowhead and DPR1 matrices, ` GenSymArrow` and `GenSymDPR1`, respectively,
 three functions `inv()` which compute various inverses of _SymArrow_
 matrices, two functions `bisect()` which compute outer eigenvalues of
-_SymArrow_ and _SymDPR1_ matrices, the main computational function `eig()` which
+_SymArrow_ and _SymDPR1_ matrices, the main computational function `eigen()` which
 computes the k-th eigenpair of an ordered unreduced  _SymArrow_,
-and the driver function `eig()` which computes all eigenvalues and
+and the driver function `eigen()` which computes all eigenvalues and
 eigenvectors of a _SymArrow_.
 
 The file `arrowhead4.jl` contains three functions `inv()` which compute
-various inverses of _SymDPR1_ matrices, the main computational function `eig()`
+various inverses of _SymDPR1_ matrices, the main computational function `eigen()`
 which computes the k-th eigenpair of an ordered unreduced _SymDPR1_,
-and the driver function `eig()` which computes all eigenvalues and
+and the driver function `eigen()` which computes all eigenvalues and
 eigenvectors of a _SymDPR1_.
 
 #### Half-arrowhead SVD
 
 The file `arrowhead5.jl` contains definition of type `HalfArrow`.
-_HalfArrow_ is of the form _[diagm(A.D) A.z]_ where either
-_length(A.z)=length(A.D)_
-or _length(A.z)=length(A.D)+1_, thus giving two possible
+_HalfArrow_ is of the form `[Diagonal(A.D) A.z]` where either
+`length(A.z)=length(A.D)`
+or `length(A.z)=length(A.D)+1`, thus giving two possible
 forms of the SVD rank one update.  The file `arrowhead6.jl` contains
 the function `doubledot()`, three functions `inv()` which compute
 various inverses of _HalfArrow_ matrices, the main computational function `svd()`
@@ -70,7 +70,8 @@ arrowhead matrix.
 #### Polynomial Roots
 
 The file `arrowhead7.jl` conatains the function `rootsah()` which computes the
-roots of `Int32`, `Int64`, `Float32` and `Float64` polynomials with all distinct real roots. The computation is
+roots of `Int32`, `Int64`, `Float32` and `Float64` polynomials with all distinct
+real roots. The computation is
 forward stable. The program uses `SymArrow` form of companion matrix in
 barycentric coordinates and
 the corresponding `eig()` function specially designed for this case.
@@ -88,7 +89,8 @@ were developed and analysed by [Jakovcevic Stor, Barlow and
 Slapnicar (2013)][JSB2013]
 (see also [arXiv:1302.7203][JSB2013a]).
 The routines for DPR1 matrices are described and analysed in [Jakovcevic
-Stor, Barlow and Slapnicar (2015)][JSB2015] (the paper is [freely downloadable](http://authors.elsevier.com/a/1Rmlt5YnCLEdU) until
+Stor, Barlow and Slapnicar (2015)][JSB2015] (the paper is
+[freely downloadable](http://authors.elsevier.com/a/1Rmlt5YnCLEdU) until
 Nov 15, 2015, see also [arXiv:1405.7537][JSB2015a]). The polynomial root finder is described and analyzed
 in [Jakovcevic Stor and Slapnicar (2015)][JS2015].
 
