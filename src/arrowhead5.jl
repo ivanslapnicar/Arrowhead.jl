@@ -1,7 +1,5 @@
-importall Base
-
 # Define a Half Arrow Matrix Type
-struct HalfArrow{T} <: AbstractMatrix{T}
+mutable struct HalfArrow{T} <: AbstractMatrix{T}
     D::Vector{T} # diagonal
     z::Vector{T} # last column
 end
@@ -22,6 +20,4 @@ function getindex(A::HalfArrow,i::Integer,j::Integer)
 end
 
 # Dense version of HalfArrow
-full(A::HalfArrow) =[A[i,j] for i=1:size(A,1), j=1:size(A,2)]
-
-
+Matrix(A::HalfArrow) =[A[i,j] for i=1:size(A,1), j=1:size(A,2)]

@@ -13,7 +13,7 @@ import LinearAlgebra: eigen, inv
 # using DoublelengthFloat
 
 # Define a Symmetric Arrow Matrix Type
-struct SymArrow{T} <: AbstractMatrix{T}
+mutable struct SymArrow{T} <: AbstractMatrix{T}
     D::Vector{T} # diagonal
     z::Vector{T} # 1st row[2:n]
     a::T # arrow top value
@@ -45,7 +45,7 @@ Matrix(A::SymArrow{T}) where T =[A[i,j] for i=1:size(A,1), j=1:size(A,2)]
 #-------------------------------------------------------
 
 # Define a Symmetric Diagonal+Rank-One Type
-struct SymDPR1{T} <: AbstractMatrix{T}
+mutable struct SymDPR1{T} <: AbstractMatrix{T}
     D::Vector{T} # diagonal
     u::Vector{T} # rank one, length n
     r::T # rho
