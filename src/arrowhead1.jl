@@ -18,7 +18,7 @@ mutable struct SymArrow{T} <: AbstractMatrix{T}
     z::Vector{T} # 1st row[2:n]
     a::T # arrow top value
     i::Int # arrow top position
-end # immutable
+end # mutable
 
 # Define its size
 
@@ -49,7 +49,7 @@ mutable struct SymDPR1{T} <: AbstractMatrix{T}
     D::Vector{T} # diagonal
     u::Vector{T} # rank one, length n
     r::T # rho
-end # immutable
+end # mutable
 
 # Define its size
 

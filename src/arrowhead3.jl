@@ -15,9 +15,7 @@ function GenSymDPR1(n::Integer)
 end
 
 #-------- Inverses
-
 function inv(A::SymArrow{T},i::Integer,τ::Vector{Float64}=[1e3;10.0*length(A.D)]) where T
-
     # COMPUTES: inverse of a SymArrow matrix A, inv(A-A.D[i]*I) which is again SymArrow
     # uses higher precision to compute top of the arrow element accurately, if
     # needed.
@@ -31,7 +29,6 @@ function inv(A::SymArrow{T},i::Integer,τ::Vector{Float64}=[1e3;10.0*length(A.D)
     z=Array{T}(undef,n)
     wz=one(T)/A.z[i]
     σ=A.D[i]
-
     for k=1:i-1
         D[k]=one(T)/(A.D[k]-σ)
         z[k]=-A.z[k]*D[k]*wz
@@ -40,17 +37,14 @@ function inv(A::SymArrow{T},i::Integer,τ::Vector{Float64}=[1e3;10.0*length(A.D)
         D[k-1]=one(T)/(A.D[k]-σ)
         z[k-1]=-A.z[k]*D[k-1]*wz
     end
-
     # D=[1./(A.D[1:i-1]-shift),1./(A.D[i+1:end]-σ)]
     # wz=1/A.z[i]
     # z=-[A.z[1:i-1], A.z[i+1:end]].*D1*wz1
     a=A.a-A.D[i]
-
     # compute the sum in a plain loop
     P=zero(T)
     Q=zero(T)
     Qout=0
-
     nn=n-1
     for k=1:i-1
         D[k]>0.0 ? P+=A.z[k]^2*D[k] : Q+=A.z[k]^2*D[k]
@@ -58,11 +52,9 @@ function inv(A::SymArrow{T},i::Integer,τ::Vector{Float64}=[1e3;10.0*length(A.D)
     for k=i:nn
         D[k]>0.0 ? P+=A.z[k+1]^2*D[k] : Q+=A.z[k+1]^2*D[k]
     end
-    a<0 ? P=P-a : Q=Q-a
-
+    a<0 ? P-=a : Q-=a
     Kb=(P-Q)/abs(P+Q)
     Kz=maximum(abs,A.z)*abs(wz)
-
     if Kb<τ[1] ||  Kz<τ[2]
         b=(P+Q)*wz*wz
     else  # recompute in Double or BigFloat
@@ -82,19 +74,15 @@ function inv(A::SymArrow{T},i::Integer,τ::Vector{Float64}=[1e3;10.0*length(A.D)
         ad=Type(A.a)-σ₁
 
         Pd,Qd=map(Type,(0.0,0.0))
-
         for k=1:i-1
             convert(Float64,Dd[k])>0.0 ? Pd+=Type(A.z[k])^2/Dd[k] :
             Qd+=Type(A.z[k])^2/Dd[k]
         end
-
         for k=i:nn
             convert(Float64,Dd[k])>0.0 ? Pd+=Type(A.z[k+1])^2/Dd[k] :
             Qd+=Type(A.z[k+1])^2/Dd[k]
         end
-
         convert(Float64,ad)<0 ?   Pd=Pd-ad : Qd=Qd-ad
-
         bd=(Pd+Qd)/(wzd*wzd)
         b=convert(Float64,bd)
     end
@@ -117,11 +105,10 @@ function inv(A::SymArrow{T},i::Integer,τ::Vector{Float64}=[1e3;10.0*length(A.D)
         z[A.i]=wz
         SymArrow(D,z,b,i+1),Kb,Kz,Qout
     end
-
 end # inv
 
 function inv!(B::SymArrow{T},A::SymArrow{T},i::Integer,τ::Vector{Float64}=[1e3;10.0*length(A.D)]) where T
-
+    # In-place version!
     # COMPUTES: inverse of a SymArrow matrix A, inv(A-A.D[i]*I) which is again SymArrow
     # uses higher precision to compute top of the arrow element accurately, if
     # needed.
@@ -135,7 +122,6 @@ function inv!(B::SymArrow{T},A::SymArrow{T},i::Integer,τ::Vector{Float64}=[1e3;
     # z=Array{T}(undef,n)
     wz=one(T)/A.z[i]
     σ=A.D[i]
-
     for k=1:i-1
         B.D[k]=one(T)/(A.D[k]-σ)
         B.z[k]=-A.z[k]*B.D[k]*wz
@@ -154,7 +140,6 @@ function inv!(B::SymArrow{T},A::SymArrow{T},i::Integer,τ::Vector{Float64}=[1e3;
     P=zero(T)
     Q=zero(T)
     Qout=0
-
     nn=n-1
     for k=1:i-1
         B.D[k]>0.0 ? P+=A.z[k]^2*B.D[k] : Q+=A.z[k]^2*B.D[k]
@@ -162,7 +147,7 @@ function inv!(B::SymArrow{T},A::SymArrow{T},i::Integer,τ::Vector{Float64}=[1e3;
     for k=i:nn
         B.D[k]>0.0 ? P+=A.z[k+1]^2*B.D[k] : Q+=A.z[k+1]^2*B.D[k]
     end
-    a<0 ? P=P-a : Q=Q-a
+    a<0 ? P-=a : Q-=a
 
     Kb=(P-Q)/abs(P+Q)
     Kz=maximum(abs,A.z)*abs(wz)
@@ -186,19 +171,15 @@ function inv!(B::SymArrow{T},A::SymArrow{T},i::Integer,τ::Vector{Float64}=[1e3;
         ad=Type(A.a)-σ₁
 
         Pd,Qd=map(Type,(0.0,0.0))
-
         for k=1:i-1
             convert(Float64,Dd[k])>0.0 ? Pd+=Type(A.z[k])^2/Dd[k] :
             Qd+=Type(A.z[k])^2/Dd[k]
         end
-
         for k=i:nn
             convert(Float64,Dd[k])>0.0 ? Pd+=Type(A.z[k+1])^2/Dd[k] :
             Qd+=Type(A.z[k+1])^2/Dd[k]
         end
-
-        convert(Float64,ad)<0 ?   Pd=Pd-ad : Qd=Qd-ad
-
+        convert(Float64,ad)<0 ?   Pd-=ad : Qd-=ad
         bd=(Pd+Qd)/(wzd*wzd)
         b=convert(Float64,bd)
     end
@@ -227,11 +208,9 @@ function inv!(B::SymArrow{T},A::SymArrow{T},i::Integer,τ::Vector{Float64}=[1e3;
         # SymArrow(D,z,b,i+1),Kb,Kz,Qout
         return Kb,Kz,Qout
     end
-
 end # inv!
 
 function inv(A::SymArrow{T}, σ::Float64, τ::Float64=1.0e3) where T
-
     # COMPUTES: inverse of the shifted SymArrow A, inv(A-σ*I) which is SymDPR1
     # uses DoubleDouble to compute rho accurately, if needed.
     # τ is tolerance, usually 1e3,  0.0 forces Double, 1e50 would never use it
@@ -241,7 +220,6 @@ function inv(A::SymArrow{T}, σ::Float64, τ::Float64=1.0e3) where T
     n=length(A.D)
     D=Array{T}(undef,n+1)
     u=Array{T}(undef,n+1)
-
     for k=1:A.i-1
         D[k]=one(T)/(A.D[k]-σ)
         u[k]=A.z[k]*D[k]
@@ -255,28 +233,22 @@ function inv(A::SymArrow{T}, σ::Float64, τ::Float64=1.0e3) where T
 
     # compute rho and Krho
     #--- compute the sum in a plain loop
-
     a=A.a-σ
     P=zero(T)
     Q=zero(T)
     Qout=0
-
     for k=1:A.i-1
         D[k]>0.0 ? P+=A.z[k]^2*D[k] : Q+=A.z[k]^2*D[k]
     end
     for k=A.i:n
         D[k+1]>0.0 ? P+=A.z[k]^2*D[k+1] : Q+=A.z[k]^2*D[k+1]
     end
-
     a<0 ? P-=a : Q-=a
 
     # Condition of rho
     Kρ=(P-Q)/abs(P+Q)
-
-
     if Kρ<τ
         ρ=-1.0/(P+Q)
-
     else  # recompute in Double
         Qout=1
         Pd,Qd=map(Double,(0.0,0.0))
@@ -288,9 +260,7 @@ function inv(A::SymArrow{T}, σ::Float64, τ::Float64=1.0e3) where T
         for k=A.i:n
             D[k+1]>0.0 ? Pd+=Double(A.z[k])^2/(Double(A.D[k])-σ₁) : Qd+=Double(A.z[k])^2/(Double(A.D[k])-σ₁)
         end
-
         ad.hi+ad.lo<0 ? Pd-=ad : Qd-=ad
-
         if Pd+Qd!=Double(0.0,0.0)
             Kρ=Float64((Pd-Qd)/abs(Pd+Qd))
             r=Double(1.0)/(Pd+Qd)
@@ -318,11 +288,9 @@ function inv(A::SymArrow{T}, σ::Float64, τ::Float64=1.0e3) where T
 
     # returns the following
     SymDPR1(D,u,ρ), Kρ, Qout
-
 end # inv
 
 function inv(A::SymArrow{T}, σ::Double) where T
-
     # COMPUTES: inverse of the shifted SymArrow A, inv(A-shift*I), which is a SymDPR1
     # here shift is Double so it uses Double to compute everything
     # RETURNS: SymDPR1(D₁,u₁,ρ), Qout
@@ -331,48 +299,37 @@ function inv(A::SymArrow{T}, σ::Double) where T
     n=length(A.D)
     D=Array{Double}(undef,n+1)
     u=Array{Double}(undef,n+1)
-
     for k=1:n
         D[k]=Double(A.D[k])-σ
     end
-
     u[1:n]=map(Double,A.z)
     a=map(Double,A.a)-σ
     i=A.i
-
     oned=Double(1.0)
     zerod=Double(0.0)
-
     for k=1:i-1
         u[k]=u[k]/D[k]
         D[k]=oned/D[k]
     end
-
     for k=i:n
         u[k+1]=u[k]/D[k]
         D[k+1]=oned/D[k+1]
     end
-
     D[i]=zerod
     u[i]=Double(-1.0)
 
     # compute rho and Kρ
-
     P,Q=zerod,zerod
     Qout=1
-
     for k=1:i-1
         D[k].hi > 0.0 ? P+=Double(A.z[k])*u[k] : Q+=Double(A.z[k])*u[k]
     end
     for k=i:n
         D[k+1].hi >0.0 ? P+=Double(A.z[k])*u[k+1] : Q+=Double(A.z[k])*u[k+1]
     end
-
     a.hi+a.lo<0.0  ? P-=a : Q-=a
     r=oned/(P+Q)
-
     ρ=-(r.hi+r.lo)
-
     # returns the following
     D₁=Array{T}(undef,n+1)
     u₁=Array{T}(undef,n+1)
@@ -382,15 +339,12 @@ function inv(A::SymArrow{T}, σ::Double) where T
     for k=1:n+1
         u₁[k]=u[k].hi+u[k].lo
     end
-
     SymDPR1(D₁,u₁,ρ), Qout
-
 end # inv
 
 
 function  eigen( A::SymArrow{T}, Ainv::SymArrow{T}, k::Integer,
     τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,1e3]) where T
-
     # COMPUTES: k-th eigenpair of an ordered irreducible SymArrow
     # A = [diag (D) z; z' alpha]
     # τ=[tolb,tolz,tolnu,tolrho,tollambda] = [1e3,10.0*n,1e3,1e3,1e3]
@@ -402,20 +356,16 @@ function  eigen( A::SymArrow{T}, Ainv::SymArrow{T}, k::Integer,
 
     # If Qout>0, quad precision was used
     # i was the shift index
-
     # Set the dimension
     n = length(A.D) + 1
-
     # Set all conditions initially to zero
     Kb,Kz,Kν,Kρ=0.0,0.0,0.0,0.0
     Qout=0
     v=zeros(T,n)
     # Kz is former κ_ν
-
     # Determine the shift σ, the shift index i, and whether λ
     # is on the left or the right side of the nearest pole
     # Exterior eigenvalues (k = 1 or k = n):
-
     if k == 1
         σ,i,side = A.D[1],1,'R'
     elseif k==n
@@ -430,12 +380,10 @@ function  eigen( A::SymArrow{T}, Ainv::SymArrow{T}, k::Integer,
     end
 
     # Compute the inverse of the shifted matrix, A_i^(-1), Kb and Kz
-
     # Ainv,Kb,Kz,Qout = inv(A,i)
     Kb,Kz,Qout = inv!(Ainv,A,i)
-    # @show norm(Ainv*SymArrow(A.D.-A.D[i],A.z,A.a-A.D[i],A.i)-I)
-    # Compute the eigenvalue of the inverse shifted matrix
 
+    # Compute the eigenvalue of the inverse shifted matrix
     ν = bisect( Ainv,side )
 
     if abs(ν)==Inf
@@ -452,9 +400,7 @@ function  eigen( A::SymArrow{T}, Ainv::SymArrow{T}, k::Integer,
             ν₁=max(ν₁,abs(Ainv.D[l])+abs(Ainv.z[l]))
         end
         ν₁=max(sum(abs,Ainv.z)+abs(Ainv.a), ν₁)
-
         Kν=ν₁/abs(ν)
-
         while  Kν>τ[3]
             # Remedies according to Remark 3 - we shift between original
             # eigenvalues and compute DPR1 matrix
@@ -463,22 +409,21 @@ function  eigen( A::SymArrow{T}, Ainv::SymArrow{T}, k::Integer,
             ν = side=='R' ? abs(ν) : -abs(ν)
             ν₁=-sign(ν)*ν₁
             σ₁=(ν₁+ν)/(2.0*ν*ν₁)+σ
-
             if count(isequal(σ₁),A.D)>0  # we came back with a pole
                 # recompute σᵥ more accurately with Dekker
                 σᵥ=(Double(ν₁)+Double(ν))/(Double(2.0)*Double(ν)*Double(ν₁))+Double(σ)
                 # Compute the inverse of the shifted arrowhead (DPR1)
-                Ainv,Qout1=inv(A,σᵥ) # Ainv is Float64
+                Ainv,Qout₁=inv(A,σᵥ) # Ainv is Float64
                 ν₁=bisect(Ainv,side)
                 μ₁ = 1.0/ν₁
                 D0=map(Double,A.D)-σᵥ
                 D1=[D0[l].hi+D0[l].lo for l=1:length(D0)]
-                if findfirst(D1-μ₁,0.0)>0
-                    ind=find(D1-μ₁==0.0)
-                    v=zeros(n)
+                if count(isequal(μ₁),D1)>0
+                    ind=findall(isequal(μ₁),D1)
+                    v=zeros(T,n)
                     v[ind]=1.0
                 else
-                    v=[ A.z./(D1-μ₁);-1.0]
+                    v=[ A.z./(D1.-μ₁);-1.0]
                 end
                 # Shift the eigenvalue back in Double
                 lam = Double(1.0)/Double(ν₁)+σᵥ
@@ -490,8 +435,8 @@ function  eigen( A::SymArrow{T}, Ainv::SymArrow{T}, k::Integer,
                 # Compute the inverse of the shifted arrowhead (DPR1)
                 Ainv₁, Kρ,Qout₁=inv(A,σ₁,τ[4]) # Ainv is Float64
                 # Compute the eigenvalue by bisect for DPR1
-	        # Note: instead of bisection could use dlaed4 (need a wrapper) but
-	        # it is not faster. There norm(u)==1
+	            # Note: instead of bisection could use dlaed4 (need a wrapper) but
+	            # it is not faster. There norm(u)==1
                 ν= bisect(Ainv₁,side)
                 if side=='R' && A.D[1]>0.0 && ν<0.0
                     ν=bisect(Ainv₁,'L')
@@ -516,7 +461,6 @@ function  eigen( A::SymArrow{T}, Ainv::SymArrow{T}, k::Integer,
         # Remedy according to Remark 1 - we recompute the the eigenvalue
         # near zero from the inverse of the original matrix (a DPR1 matrix).
         if (abs(A.D[i])+abs(1.0/ν))/abs(λ)>τ[5]
-
             if k==1 && A.D[1]<0.0 || k==n && A.D[n-1]>0.0 || i<n-1 && side=='L' &&
                 sign(A.D[i])+sign(A.D[i+1])==0 || i>1 &&
                 side=='R' && sign(A.D[i])+sign(A.D[i-1])==0
@@ -534,18 +478,14 @@ function  eigen( A::SymArrow{T}, Ainv::SymArrow{T}, k::Integer,
                     λ=1.0/ν₁
                 end
             end
-
         end
     end
 
     # Return this
     λ,v,i,Kb,Kz,Kν,Kρ,Qout
-
 end # eigen(k)
 
-
 function eigen(A::SymArrow{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,1e3]) where T
-
     # COMPUTES: all eigenvalues and eigenvectors of a real symmetric SymArrow
     # A = [diag(D) z;z' alpha] (notice, here we assume A.i==n)
     # τ = [tolb,tolz,tolnu,tolrho,tollambda] = [1e3,10.0*n,1e3,1e3,1e3] or similar
@@ -557,7 +497,6 @@ function eigen(A::SymArrow{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3
 
     n=length(A.D)+1
     n0=n
-
     # Ordering the matrix
     is=sortperm(A.D,rev=true)
     D=A.D[is]
@@ -575,7 +514,6 @@ function eigen(A::SymArrow{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3
     #  test for deflation in z
     z0=findall(iszero,z)
     zx=findall(!iszero,z)
-
     if isempty(zx)  # nothing to do
         Λ=[A.D;A.a]
         isΛ=sortperm(Λ,rev=true)
@@ -583,7 +521,6 @@ function eigen(A::SymArrow{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3
         U=view(U,:,isΛ) # U[:,isΛ]
         return Λ,U,Sind,Kb,Kz,Kν,Kρ,Qout
     end
-
     if !isempty(z0)
         Λ[z0]=D[z0]
         D=D[zx]
@@ -610,15 +547,14 @@ function eigen(A::SymArrow{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3
         lg0=length(g0)
         R=Array{Tuple{LinearAlgebra.Givens{Float64},Float64}}(undef,lg0)
         for l=lg0:-1:1
-            R[l],r=givens(z[g0[l]],z[g0[l]+1],zx[g0[l]],zx[g0[l]+1])
+            R[l]=givens(z[g0[l]],z[g0[l]+1],zx[g0[l]],zx[g0[l]+1])
             z[g0[l]]=R[l][2]; z[g0[l]+1]=0.0
             # A_mul_Bc!(U,R) # multiply R'*U later
             Λ[zx[g0[l]+1]]=D[g0[l]+1]
         end
         # remains
-        gx=[0;gx]+1
+        gx=[0;gx].+1
         nn=length(gx)
-
         zxx=zx[[gx;n]]
         Axx=SymArrow(D[gx],z[gx],A.a,nn+1)
         Bxx=[deepcopy(Axx) for i=1:Threads.nthreads()]
@@ -627,40 +563,32 @@ function eigen(A::SymArrow{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3
             Λ[zxx[k]],U[zxx,zxx[k]],Sind[zxx[k]],Kb[zxx[k]],Kz[zxx[k]],Kν[zxx[k]],Kρ[zxx[k]],Qout[zxx[k]]=
             eigen(Axx,Bxx[tid],k)
         end
-
         for l=1:lg0
-            # bolje rmul ili lmul
-            lmul!(R[l],U)
-            # U=R[l]'*U
+            # U=R[l][1]'*U
+            lmul!(R[l][1],U)
         end
-
     else
-
         # No deflation in D
         Ax=SymArrow(D,z,A.a,n)
         Bx=[deepcopy(Ax) for i=1:Threads.nthreads()]
-        for k=1:n
+        Threads.@threads for k=1:n
             tid=Threads.threadid()
             Λ[zx[k]],U[zx,zx[k]],Sind[zx[k]],Kb[zx[k]],Kz[zx[k]],Kν[zx[k]],Kρ[zx[k]],Qout[zx[k]]=
             eigen(Ax,Bx[tid],k)
         end
     end
     # end
+
     # back premutation of vectors
     isi=sortperm(is)
-
     # must sort Λ once more
     es=sortperm(Λ,rev=true)
     Λ.=Λ[es]
-
     U=view(U,[isi[1:A.i-1];n0;isi[A.i:n0-1]],es)
-    #U=U[[isi[1:A.i-1];n0;isi[A.i:n0-1]],es]
-
+    # U=U[[isi[1:A.i-1];n0;isi[A.i:n0-1]],es]
     # Return this
     Λ,U,Sind[es],Kb[es],Kz[es],Kν[es],Kρ[es],Qout[es]
-
 end # eigen (all)
-
 
 function bisect(A::SymArrow{T}, side::Char) where T
     # COMPUTES: the leftmost (for side='L') or the rightmost (for side='R') eigenvalue
@@ -670,7 +598,6 @@ function bisect(A::SymArrow{T}, side::Char) where T
     # Determine the starting interval for bisection, [left; right]
     # left, right = side == 'L' ? {minimum([A.D-abs(A.z),A.a-sum(abs(A.z))]), minimum(A.D)} :
     #   {maximum(A.D),maximum([A.D+abs.(A.z),A.a+sum(abs,A.z)])}
-
     z = abs.(A.z)
     if side == 'L'
         left  = minimum(A.D .- z)
@@ -686,14 +613,12 @@ function bisect(A::SymArrow{T}, side::Char) where T
     middle = (left + right) / convert(T,2)
     z.^= 2
     count, n = 0, length(A.D)
-
     while (right-left) > 2.0 * eps() * max(abs(left), abs(right))
         # in @time 50% of the time was garbage collection. The following line
         # assigns new vector every time it is called, so it is much better in the
         # loop?? Original timing were 30 secs for n=4000, 2.17 sec for n=1000
 
         # Fmiddle = A.a-middle-sum(z./(A.D-middle))
-
         Fmiddle = zero(T)
         for k=1:n
             Fmiddle += z[k] / (A.D[k] - middle)
@@ -709,7 +634,6 @@ function bisect(A::SymArrow{T}, side::Char) where T
     end
     # Return the eigenvalue
     right
-
 end # bisect
 
 function bisect( A::SymDPR1, side::Char )
@@ -720,7 +644,6 @@ function bisect( A::SymDPR1, side::Char )
     n=length(A.D)
     # Determine the starting interval for bisection, [left; right]
     indD=sortperm(A.D,rev=true)
-
     if A.r>0.0
         left, right = side == 'L' ? (A.D[indD[n]], A.D[indD[n-1]]) :  (A.D[indD[1]], A.D[indD[1]]+A.r*dot(A.u,A.u))
     else # rho<=0
@@ -732,15 +655,12 @@ function bisect( A::SymDPR1, side::Char )
     u2=A.u.^2
     n = length(A.D)
     while (right-left) > 2.0*eps()*maximum([abs(left),abs(right)])
-
         # Fmiddle = 1.0+A.r*sum(u2./(A.D-middle))
-
         Fmiddle=0.0
         for k=1:n
             Fmiddle=Fmiddle+u2[k]/(A.D[k]-middle)
         end
         Fmiddle=1.0+A.r*Fmiddle
-
         sign(A.r)*Fmiddle < 0.0 ? left = middle : right = middle
         middle = (left + right)/2.0
     end
