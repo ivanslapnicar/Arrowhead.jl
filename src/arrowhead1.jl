@@ -1,16 +1,5 @@
-# importall Base
-# using Base.LinearAlgebra.Givens
 import Base:size, getindex, convert
-import LinearAlgebra: eigen, inv
-
-# This needs to be executed once
-# Pkg.clone("https://github.com/jiahao/DoublelengthFloat.jl.git")
-# using DoublelengthFloat # by Jiahao Chen or use other by Simon Byrne
-# Pkg.clone("https://github.com/simonbyrne/DoubleDouble.jl.git")
-
-# using DoubleDouble # Jiahao's has error, this is Simon's version
-
-# using DoublelengthFloat
+import LinearAlgebra: eigen, inv, svd
 
 # Define a Symmetric Arrow Matrix Type
 mutable struct SymArrow{T} <: AbstractMatrix{T}

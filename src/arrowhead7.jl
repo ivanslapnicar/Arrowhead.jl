@@ -38,7 +38,10 @@ function rootsah(pol::Union{Poly{Float32},Poly{Float64},Poly{Int32},Poly{Int64}}
     # for example
     #              D=roots(polyder(pol))
     # RETURNS: roots E
+
+    # Type is Float64
     T = Float64
+
     # τ = [1e2,1e2,1e2,1e2,1e2] or similar is the vector of tolerances for eig
     τ=[1e2,1e2,1e2,1e2,1e2]
     Dm=map(T,D)
@@ -145,7 +148,7 @@ function inv(A::SymArrow{T},zD::Vector{Double{T}}, αD::Double{T},i::Int64,τ::V
     for k=i:nn
         D[k]>0.0 ? P+=A.z[k+1]^2*D[k] : Q+=A.z[k+1]^2*D[k]
     end
-    a<0 ? P=P-a : Q=Q-a
+    a<0 ? P-=a : Q-=a
     Kb=(P-Q)/abs(P+Q)
     Kz=maximum(abs,A.z)*abs(wz)
     if Kb<τ[1] ||  Kz<τ[2]
@@ -232,6 +235,7 @@ function inv(A::SymArrow{T}, zD::Vector{Double{T}}, αD::Double{T}, σ::Float64,
         D[k+1]>0.0 ? P+=A.z[k]^2*D[k+1] : Q+=!=()A.z[k]^2*D[k+1]
     end
     a<0 ? P-=a : Q-=a
+
     # Condition of ρ
     Kρ=(P-Q)/abs(P+Q)
     if Kρ<τ
@@ -286,6 +290,7 @@ function inv(A::SymArrow{T}, zD::Vector{Double{T}}, αD::Double{T}, σ::Double{F
     end
     D[i]=zerod
     u[i]=-oned
+
     # compute ρ and Kρ
     #--- compute the sum in a plain loop
     P,Q=zerod,zerod
@@ -315,7 +320,7 @@ end # inv
 function  eigen( A::SymArrow{T},zD::Vector{Double{T}},αD::Double{T},k::Int64,
     τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,1e3]) where T
     # COMPUTES: k-th eigenvalue of an ordered irreducible SymArrow
-    # A = [diag (D) z; z' α]
+    # A = [Diagonal(D) z; z' α]
     # Specially designed to be used in the polynomial rootfinder rootsah !!!!
     # τ=[tolb,tolz,tolnu,tolrho,tollambda] = [1e3,10.0*n,1e3,1e3,1e3]
     # RETURNS: λ
