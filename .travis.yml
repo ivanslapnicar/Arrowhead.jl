@@ -9,4 +9,4 @@ notifications:
 before_install:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
 script:
-  - julia -e 'using Pkg; Pkg.build("Arrowhead.jl";verbose=true); Pkg.test("Arrowhead.jl",coverage=true)'
+  - julia -e 'using Pkg; Pkg.build(PackageSpec(url="https://github.com/ivanslapnicar/Arrowhead.jl", rev="v1.1");verbose=true); Pkg.test("Arrowhead.jl",coverage=true)'
