@@ -9,4 +9,4 @@ notifications:
 before_install:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
 script:
-  - julia -e 'using Pkg; Pkg.test("Arrowhead")'
+  - julia -e 'using Pkg; cd(Pkg.dir("Arrowhead")); Pkg.test("Arrowhead")'
