@@ -14,8 +14,26 @@ This is a major rewrite of the packege with following features:
 
 ## Basics
 
-N.B. Always use the leatest master obtained by `Pkg.checkout("Arrowhead")`.
-For examples of usage see the file [runtests.jl](tests/runtests.jl).
+N.B. The latest master is obtained by
+`pkg> add Arrowhead#master`.
+
+Usage:
+
+```
+using Arrowhead
+# Set the dimension
+n=10
+# Generate SymArrow
+A=GenSymArrow(n,n)
+# Compute the eigenvalue decomposition
+E,Info=eigen(A)
+# Extract eigenvalues
+Λ=E.values
+# Extract eigenvectors
+U=E.vectors
+```
+
+For furthaer examples see the file [runtests.jl](tests/runtests.jl).
 
 The package contains routines for __forward stable__ algorithms which compute:
 * all eigenvalues and eigenvectors of a real symmetric arrowhead matrices,
@@ -85,7 +103,7 @@ roots of `Int32`, `Int64`, `Float32` and `Float64` polynomials with all distinct
 real roots. The computation is
 forward stable. The program uses `SymArrow` form of companion matrix in
 barycentric coordinates and
-the corresponding `eig()` function specially designed for this case.
+the corresponding `eigen()` function specially designed for this case.
 The file also contains three functions `inv()`. Similarly, the file
 `arrowhead8.jl` conatains the function `rootsah()` which computes the
 roots of `BigInt` and `BigFloat` polynomials with all distinct real roots.

@@ -2,31 +2,31 @@ function tdc(T::SymTridiagonal{S}) where S
     # Tridiagonal divide-and-conquer using arrowhead matrices
     # COMPUTES: eigenvectors U and eigenvalues Λ of a SymTridiagonal matrix T,
     # T = U*Diagonal(Λ)*U'
-    # RETURNS: Λ, U
+    # RETURNS: Eigen(Λ, U)
     n=length(T.dv)
     # set the tolerances for eigen
+    E=Eigen(Vector{Float64}(undef,1),Array{Float64}(undef,1,1))
     τ=[1e2,1e2,1e2,1e2,1e2]
     if n==1
-        U=[1.0]
-        Λ=T.dv[1]
+        E=Eigen([T.dv[1]],ones(1,1))
     elseif n==2
-        Λ,U,rest=eigen(SymArrow([T.dv[1]],[T.ev[1]],T.dv[2],2),τ)
+        E,info=eigen(SymArrow([T.dv[1]],[T.ev[1]],T.dv[2],2),τ)
     else
         k=div(n,2)
         T₁=SymTridiagonal(T.dv[1:k],T.ev[1:k-1])
         T₂=SymTridiagonal(T.dv[k+2:end],T.ev[k+2:end])
-        Λ₁,U₁=tdc(T₁)
-        Λ₂,U₂=tdc(T₂)
+        E₁=tdc(T₁)
+        E₂=tdc(T₂)
         # form arrowhead
-        D=[Λ₁;Λ₂]
-        z=[U₁'[:,end]*T.ev[k]; U₂'[:,1]*T.ev[k+1]]
+        D=[E₁.values;E₂.values]
+        z=[E₁.vectors'[:,end]*T.ev[k]; E₂.vectors'[:,1]*T.ev[k+1]]
         a=T.dv[k+1]
         A=SymArrow(D,z,a,k+1)
-        Λ,U,rest=eigen(A,τ)
-        U[1:k,:]=U₁*U[1:k,:]
-        U[k+2:end,:]=U₂*U[k+2:end,:]
+        E,info=eigen(A,τ)
+        E.vectors[1:k,:].=E₁.vectors*E.vectors[1:k,:]
+        E.vectors[k+2:end,:].=E₂.vectors*E.vectors[k+2:end,:]
     end
-    return Λ, U
+    return E
 end
 
 # roots

@@ -342,20 +342,29 @@ function inv(A::SymArrow{T}, σ::Double) where T
     SymDPR1(D₁,u₁,ρ), Qout
 end # inv
 
+mutable struct Info
+    Sind::Int
+    Kb::Float64
+    Kz::Float64
+    Kν::Float64
+    Kρ::Float64
+    Qout::Int
+end
+
 
 function  eigen( A::SymArrow{T}, Ainv::SymArrow{T}, k::Integer,
     τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,1e3]) where T
     # COMPUTES: k-th eigenpair of an ordered irreducible SymArrow
-    # A = [diag (D) z; z' alpha]
+    # A = [Diagonal(D) z; z' alpha]
     # τ=[tolb,tolz,tolnu,tolrho,tollambda] = [1e3,10.0*n,1e3,1e3,1e3]
-    # RETURNS: lambda, v, Sind, Kb, Kz, Kν, Kρ, Qout
+    # RETURNS: λ,v, Info
+    # where
     # λ - k-th eigenvalue in descending order
     # v - λ's normalized eigenvector
+    # Info = Sind, Kb, Kz, Kν, Kρ, Qout
+    # Sind = shift index i for the k-th eigenvalue
     # Kb, Kz, Kν, Kρ - condition numbers
     # Qout = 1 / 0 - Double was / was not used
-
-    # If Qout>0, quad precision was used
-    # i was the shift index
     # Set the dimension
     n = length(A.D) + 1
     # Set all conditions initially to zero
@@ -430,7 +439,8 @@ function  eigen( A::SymArrow{T}, Ainv::SymArrow{T}, k::Integer,
                 # Return this
                 λ=lam.hi+lam.lo
                 normalize!(v)
-                return λ,v,i,Kb,Kz,Kν,Kρ,Qout
+                κ=Info(i,Kb,Kz,Kν,Kρ,Qout)
+                return λ,v,κ
             else
                 # Compute the inverse of the shifted arrowhead (DPR1)
                 Ainv₁, Kρ,Qout₁=inv(A,σ₁,τ[4]) # Ainv is Float64
@@ -482,15 +492,18 @@ function  eigen( A::SymArrow{T}, Ainv::SymArrow{T}, k::Integer,
     end
 
     # Return this
-    λ,v,i,Kb,Kz,Kν,Kρ,Qout
+    κ=Info(i,Kb,Kz,Kν,Kρ,Qout)
+    λ,v,κ
 end # eigen(k)
 
 function eigen(A::SymArrow{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,1e3]) where T
     # COMPUTES: all eigenvalues and eigenvectors of a real symmetric SymArrow
     # A = [diag(D) z;z' alpha] (notice, here we assume A.i==n)
     # τ = [tolb,tolz,tolnu,tolrho,tollambda] = [1e3,10.0*n,1e3,1e3,1e3] or similar
-    # RETURNS: U, Λ, Sind, Kb, Kz, Kν, Kρ, Qout
-    # U = eigenvectors, Λ = Λigenvalues in decreasing order
+    # RETURNS: Eigen(Λ,U), κ
+    # where
+    # Λ = eigenvalues in decreasing order, U = eigenvectors,
+    # κ[k]=Info(Sind[k], Kb[k], Kz[k], Kν[k], Kρ[k], Qout[k]
     # Sind[k] - shift index i for the k-th eigenvalue
     # Kb, Kz, Kν, Kρ [k] - respective conditions for the k-th eigenvalue
     # Qout[k] = 1 / 0 - Double was / was not used when computing k-th eigenvalue
@@ -503,12 +516,10 @@ function eigen(A::SymArrow{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3
     z=A.z[is]
     U=Array{T}(I,n,n)
     Λ=zeros(T,n)
-    Kb=zeros(T,n); Kz=zeros(T,n); Kν=zeros(T,n); Kρ=zeros(T,n)
-    Qout=zeros(Int,n); Sind=zeros(Int,n)
-
+    κ=[Info(0, 0.0, 0.0, 0.0, 0.0, 0) for i=1:n]
     # Quick return for 1x1
     if n==1
-        return [A.a],U,Sind,Kb,Kz,Kν,Kρ,Qout
+        return Eigen([A.a],U),κ
     end
 
     #  test for deflation in z
@@ -519,7 +530,7 @@ function eigen(A::SymArrow{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3
         isΛ=sortperm(Λ,rev=true)
         Λ=Λ[isΛ]
         U=view(U,:,isΛ) # U[:,isΛ]
-        return Λ,U,Sind,Kb,Kz,Kν,Kρ,Qout
+        return Eigen(Λ,U),κ
     end
     if !isempty(z0)
         Λ[z0]=D[z0]
@@ -560,8 +571,7 @@ function eigen(A::SymArrow{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3
         Bxx=[deepcopy(Axx) for i=1:Threads.nthreads()]
         Threads.@threads for k=1:nn+1
             tid=Threads.threadid()
-            Λ[zxx[k]],U[zxx,zxx[k]],Sind[zxx[k]],Kb[zxx[k]],Kz[zxx[k]],Kν[zxx[k]],Kρ[zxx[k]],Qout[zxx[k]]=
-            eigen(Axx,Bxx[tid],k)
+            Λ[zxx[k]],U[zxx,zxx[k]],κ[zxx[k]] = eigen(Axx,Bxx[tid],k)
         end
         for l=1:lg0
             # U=R[l][1]'*U
@@ -573,21 +583,20 @@ function eigen(A::SymArrow{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3
         Bx=[deepcopy(Ax) for i=1:Threads.nthreads()]
         Threads.@threads for k=1:n
             tid=Threads.threadid()
-            Λ[zx[k]],U[zx,zx[k]],Sind[zx[k]],Kb[zx[k]],Kz[zx[k]],Kν[zx[k]],Kρ[zx[k]],Qout[zx[k]]=
-            eigen(Ax,Bx[tid],k)
+            Λ[zx[k]],U[zx,zx[k]],κ[zx[k]] = eigen(Ax,Bx[tid],k)
         end
     end
     # end
-
     # back premutation of vectors
     isi=sortperm(is)
     # must sort Λ once more
     es=sortperm(Λ,rev=true)
     Λ.=Λ[es]
     U=view(U,[isi[1:A.i-1];n0;isi[A.i:n0-1]],es)
-    # U=U[[isi[1:A.i-1];n0;isi[A.i:n0-1]],es]
+    # U.=U[[isi[1:A.i-1];n0;isi[A.i:n0-1]],es]
+    κ.=κ[es]
     # Return this
-    Λ,U,Sind[es],Kb[es],Kz[es],Kν[es],Kρ[es],Qout[es]
+    return Eigen(Λ,U),κ
 end # eigen (all)
 
 function bisect(A::SymArrow{T}, side::Char) where T

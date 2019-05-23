@@ -254,14 +254,16 @@ end # inv
 function  eigen( A::SymDPR1{T}, Ainv::SymArrow{T}, k::Integer,
     τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,1e3]) where T
     # COMPUTES: k-th eigenpair of an ordered irreducible SymDPR1
-    # A = diagm(A.D)+A.r*A.u*A.u', A.r > 0
+    # A = Diagonal(A.D)+A.r*A.u*A.u', A.r > 0
     # τ=[tolb,tolz,tolnu,tolrho,tollambda] = [1e3,10.0*n,1e3,1e3,1e3]
-    # RETURNS: λ, v, Sind, Kb, Kz, Kν, Kρ, Qout
+    # RETURNS: λ, v, Info
+    # where
     # λ - k-th eigenvalue in descending order
     # v - λ's normalized eigenvector
+    # Info = Sind, Kb, Kz, Kν, Kρ, Qout
+    # Sind = shift index i for the k-th eigenvalue
     # Kb, Kz, Kν, Kρ - condition numbers
     # Qout = 1 / 0 - Double was / was not used
-
     # Set the dimension
     n = length(A.D)
     # Set all conditions initially to zero
@@ -335,7 +337,8 @@ function  eigen( A::SymDPR1{T}, Ainv::SymArrow{T}, k::Integer,
                 # Return this
                 λ = lam.hi+lam.lo
                 normalize!(v)
-                return λ,v,i,Kb,Kz,Kν,Kρ,Qout
+                κ=Info(i,Kb,Kz,Kν,Kρ,Qout)
+                return λ,v,κ
             else
                 # Compute the inverse of the Shifted DPR1 (DPR1)
                 Ainv₁, Kρ,Qout₁=inv(A,σ₁,τ[4]) # Ainv is Float64
@@ -389,16 +392,19 @@ function  eigen( A::SymDPR1{T}, Ainv::SymArrow{T}, k::Integer,
         end
     end
     # Return this
-    λ,v,i,Kb,Kz,Kν,Kρ,Qout
+    κ=Info(i,Kb,Kz,Kν,Kρ,Qout)
+    λ,v,κ
 end # eigen (k)
 
 function eigen(A::SymDPR1{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,1e3]) where T
     # COMPUTES: all eigenvalues and eigenvectors of a real symmetric SymDPR1
     # A = Diagonal(A.D)+A.r*A.u*A.u'
     # τ = [tolb,tolz,tolnu,tolrho,tollambda] = [1e3,10.0*n,1e3,1e3,1e3] or similar
-    # RETURNS: Λ, U, Sind, Kb, Kz, Kν, Kρ, Qout
-    # U = eigenvectors, Λ = eigenvalues in decreasing order
-    # Sind[k] - σ index i for the k-th eigenvalue
+    # RETURNS: Eigen(Λ,U), κ
+    # where
+    # Λ = eigenvalues in decreasing order, U = eigenvectors,
+    # κ[k]=Info(Sind[k], Kb[k], Kz[k], Kν[k], Kρ[k], Qout[k]
+    # Sind[k] - shift index i for the k-th eigenvalue
     # Kb, Kz, Kν, Kρ [k] - respective conditions for the k-th eigenvalue
     # Qout[k] = 1 / 0 - Double was / was not used when computing k-th eigenvalue
 
@@ -415,12 +421,10 @@ function eigen(A::SymDPR1{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,
     # Eigenvecgtor matrix and eigenvalue vector
     U=Array{T}(I,n,n)
     Λ=zeros(T,n)
-    Kb=zeros(n); Kz=zeros(n); Kν=zeros(n); Kρ=zeros(n)
-    Qout=zeros(Int,n); Sind=zeros(Int,n)
+    κ=[Info(0, 0.0, 0.0, 0.0, 0.0, 0) for i=1:n]
 
     # Quick return for 1x1, this is trivial for SymArrow, not so trivial here :)
     if n==1
-        U=1;
         if (D==0)&&((ρ==0)|(z==0))
             Λ=0
         else
@@ -431,8 +435,10 @@ function eigen(A::SymDPR1{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,
                 Λd=Double(A.D[1])+Double(A.r)*Double(A.u[1])^2
                 Λ=Λd.hi+Λd.lo
             end
+            # Qout=1
+            κ[1]=Info(0, 0.0, 0.0, 0.0, 0.0, 1)
         end
-        return [Λ], U, Sind,Kb,Kz,Kν,Kρ,Qout
+        return Eigen([Λ], U), κ
     end
 
     #  test for deflation in z
@@ -483,8 +489,7 @@ function eigen(A::SymDPR1{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,
         Bxx=[SymArrow(Vector{T}(undef,nn-1),Vector{T}(undef,nn-1),one(T),nn) for i=1:Threads.nthreads()]
         Threads.@threads for k=1:nn
             tid=Threads.threadid()
-            Λ[zxx[k]],U[zxx,zxx[k]],Sind[zxx[k]],Kb[zxx[k]],Kz[zxx[k]],Kν[zxx[k]],Kρ[zxx[k]],Qout[zxx[k]]=
-            eigen(Axx,Bxx[tid],k)
+            Λ[zxx[k]],U[zxx,zxx[k]],κ[zxx[k]]=eigen(Axx,Bxx[tid],k)
         end
         for l=1:lg0
             # U=R[l][1]'*U
@@ -497,8 +502,7 @@ function eigen(A::SymDPR1{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,
         # Bx=SymArrow(Vector{T}(undef,n-1),Vector{T}(undef,n-1),one(T),n)
         Threads.@threads for k=1:n
             tid=Threads.threadid()
-            Λ[zx[k]],U[zx,zx[k]],Sind[zx[k]],Kb[zx[k]],Kz[zx[k]],Kν[zx[k]],Kρ[zx[k]],Qout[zx[k]]=
-            eigen(Ax,Bx[tid],k)
+            Λ[zx[k]],U[zx,zx[k]],κ[zx[k]]=eigen(Ax,Bx[tid],k)
         end
     end
 
@@ -508,9 +512,11 @@ function eigen(A::SymDPR1{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,
     # must sort Λ once more
     Λ=signr*Λ
     es=sortperm(Λ,rev=true)
-    Λ=Λ[es]
+    Λ.=Λ[es]
     # U=U[isi,es]
     # Return this
     U=view(U,isi,es)
-    Λ,U,Sind[es],Kb[es],Kz[es],Kν[es],Kρ[es],Qout[es]
+    κ.=κ[es]
+    # Return this
+    return Eigen(Λ,U),κ
 end # eigen (all)

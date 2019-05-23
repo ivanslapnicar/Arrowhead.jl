@@ -290,7 +290,7 @@ function  eigen( A::SymArrow{T},zD::Vector{BigFloat},αD::BigFloat,k::Int64,
     # A = [Diagonal(D) z; z' alpha]
     # Specially designed to be used in the polynomial rootfinder rootsah !!!!
     # τ=[tolb,tolz,tolnu,tolrho,tollambda] = [1e3,10.0*n,1e3,1e3,1e3]
-    # RETURNS: λ
+    # RETURNS: λ, Qout
     # λ - k-th eigenvalue
     # Kb, Kz, Kν, Kρ - condition numbers
     # Qout = 1 / 0 - Double was / was not used
