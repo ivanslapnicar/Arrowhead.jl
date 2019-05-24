@@ -365,6 +365,7 @@ function  eigen( A::SymArrow{T}, Ainv::SymArrow{T}, k::Integer,
     # Sind = shift index i for the k-th eigenvalue
     # Kb, Kz, Kν, Kρ - condition numbers
     # Qout = 1 / 0 - Double was / was not used
+
     # Set the dimension
     n = length(A.D) + 1
     # Set all conditions initially to zero
@@ -503,7 +504,7 @@ function eigen(A::SymArrow{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3
     # RETURNS: Eigen(Λ,U), κ
     # where
     # Λ = eigenvalues in decreasing order, U = eigenvectors,
-    # κ[k]=Info(Sind[k], Kb[k], Kz[k], Kν[k], Kρ[k], Qout[k]
+    # κ[k]=Info(Sind[k], Kb[k], Kz[k], Kν[k], Kρ[k], Qout[k])
     # Sind[k] - shift index i for the k-th eigenvalue
     # Kb, Kz, Kν, Kρ [k] - respective conditions for the k-th eigenvalue
     # Qout[k] = 1 / 0 - Double was / was not used when computing k-th eigenvalue

@@ -294,20 +294,18 @@ function  svd(A::HalfArrow{T},Ainv::SymArrow{T},k::Integer,
     # COMPUTES: k-th singular value triple of an ordered irreducible HalfArrow
     # A = [Diagonal(A.D) A.z] with A.D > 0
     # τ=[tolb,tolz,tolnu,tolrho,tollambda] = [1e3,10.0*n,1e3,1e3,1e3]
-    # RETURNS: λ, u, v, Sind, Kb, Kz, Kν, Kρ, Qout
+    # RETURNS: λ, u, v, Info
+    # where
     # λ - k-th singular value in descending order
     # u - λ's normalized left singular vector
     # v - λ's normalized right singular vector
+    # Info = Sind, Kb, Kz, Kν, Kρ, Qout
+    # Sind = shift index i for the k-th singular value
     # Kb, Kz, Kν, Kρ - condition numbers
     # Qout = 1 / 0 - Double was / was not used
 
-    # If Qout>0, quad precision was used
-    # i was the shift index
-
     # Set the dimension
-    n = length(A.D) + 1
-
-    # Set all conditions initially to zero
+    n = length(A.D) + 1    # Set all conditions initially to zero
     Kb,Kz,Kν,Kρ=0.0,0.0,0.0,0.0
     Qout=0
     u=zeros(length(A.z))
@@ -366,7 +364,7 @@ function  svd(A::HalfArrow{T},Ainv::SymArrow{T},k::Integer,
 	        v[k] = z1[k]/((A.D[k]-σ)*(A.D[k]+σ)-μ)
             end
             v[n]=-1.0
-            v=v/norm(v)
+            normalize!(v)
             λ=sqrt(μ+σ^2) # this may have errors
             u[1:n-1]=λ*v[1:n-1]./A.D
             if length(A.z)==n
@@ -453,20 +451,23 @@ function  svd(A::HalfArrow{T},Ainv::SymArrow{T},k::Integer,
         end
     end
     # Return this
-    λ,u,v,i,Kb,Kz,Kν,Kρ,Qout
+    κ=Info(i,Kb,Kz,Kν,Kρ,Qout)
+    return λ,u,v,κ
 end # svd (k)
 
 function svd(A::HalfArrow{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,1e3]) where T
     # COMPUTES: all singular values and singular vectors of a real HalfArrow
     # A = [diagm(A.D) A.z]
     # τ=[tolb,tolz,tolnu,tolrho,tollambda] = [1e3,10.0*n,1e3,1e3,1e3]
-    # RETURNS: U, Σ, V, Sind, Kb, Kz, Kν, Kρ, Qout
+    # RETURNS: SVD(U, Σ, V), κ
+    # where
     # U = left singular vectors
     # Σ = singular values in decreasing order
     # V = right singular vectors
+    # κ[k]=Info(Sind[k], Kb[k], Kz[k], Kν[k], Kρ[k], Qout[k])
     # Sind[k] - shift index i for the k-th eigenvalue
-    # Kb, Kz, Kν, Kρ [k] - respective conditions for the k-th eigenvalue
-    # Qout[k] = 1 / 0 - Double was / was not used when computing k-th eigenvalue
+    # Kb, Kz, Kν, Kρ [k] - respective conditions for the k-th singular value
+    # Qout[k] = 1 / 0 - Double was / was not used when computing k-th singular value
 
     nd=length(A.D)
     n=length(A.z)
@@ -487,14 +488,7 @@ function svd(A::HalfArrow{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,
         V=Array{T}(I,n,n)
     end
     Σ=zeros(n)
-
-    Kb=zeros(n); Kz=zeros(n); Kν=zeros(n); Kρ=zeros(n)
-    Qout=zeros(Int,n); Sind=zeros(Int,n)
-
-    # Quick return for 1x1 - this does not exist for HalfArrow
-    # if n==1
-    #     return U,A.a,V,Sind,Kb,Kz,Kν,Kρ,Qout
-    # end
+    κ=[Info(0, 0.0, 0.0, 0.0, 0.0, 0) for i=1:n]
 
     #  test for deflation in z
     z0=findall(iszero,z)
@@ -513,7 +507,7 @@ function svd(A::HalfArrow{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,
             V=view(V,:,isΣ) # V[:,isΣ]
             U=view(U,invperm(isΣ),:) # U[invperm(isΣ),:]
         end
-        return U,Σ,V,Sind,Kb,Kz,Kν,Kρ,Qout
+        return SVD(U,Σ,V), κ
     end
 
     if !isempty(z0)
@@ -574,8 +568,7 @@ function svd(A::HalfArrow{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,
             # Threads.@threads
             for k=1:nn+1
                 tid=Threads.threadid()
-                Σ[zxx[k]],U[zxx,zxx[k]],V[zxxv,zxx[k]],Sind[zxx[k]],Kb[zxx[k]],Kz[zxx[k]],Kν[zxx[k]],Kρ[zxx[k]],
-                Qout[zxx[k]]=svd(Axx,Bxx[tid],k)
+                Σ[zxx[k]],U[zxx,zxx[k]],V[zxxv,zxx[k]],κ[zxx[k]]=svd(Axx,Bxx[tid],k)
             end
             for l=1:lg0
                 # U=R[l][1]'*U
@@ -588,8 +581,7 @@ function svd(A::HalfArrow{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,
             # Threads.@threads
             for k=1:n
                 tid=Threads.threadid()
-                Σ[zx[k]],U[zx,zx[k]],V[zxv,zx[k]],Sind[zx[k]],Kb[zx[k]],Kz[zx[k]],Kν[zx[k]],Kρ[zx[k]],Qout[zx[k]]=
-                svd(Ax,Bx[tid],k)
+                Σ[zx[k]],U[zx,zx[k]],V[zxv,zx[k]],κ[zx[k]]=svd(Ax,Bx[tid],k)
                 V[zxv[1:end-1],zx[k]]=V[zxv[1:end-1],zx[k]].*signD[zxv[1:end-1]]
             end
         end
@@ -598,16 +590,16 @@ function svd(A::HalfArrow{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,
     isi=sortperm(is)
     # must sort Σ once more
     es=sortperm(Σ,rev=true)
-    Σ=Σ[es]
+    Σ.=Σ[es]
     if n0==nd
         U=view(U,isi,es)
         V=view(V,[isi;n0+1],es)
     else
         isiv=[isi;n0]
-        U=U[isiv,es]
-        V=V[isiv,es]
+        U=view(U,isiv,es)
+        V=view(V,isiv,es)
     end
-
+    κ.=κ[es]
     # Return this
-    U,Σ,V,Sind[es],Kb[es],Kz[es],Kν[es],Kρ[es],Qout[es]
+    return SVD(U,Σ,V),κ
 end # svd (all)

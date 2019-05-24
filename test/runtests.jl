@@ -81,9 +81,9 @@ println("\n","There is one test for SVD of HalfArrow matrices")
 tols = [1e2,1e2,1e2,1e2,1e2]
 println("   HalfArrow with entries varying in magnitude")
 A=HalfArrow(sort(exp.(20*(rand(8).-0.5)),rev=true),(exp.(20*(rand(8).-0.5))))
-U, Σ, V, Sind, Kb, Kz, Knu, Krho, Qout = svd( A, tols )
-N1=norm(U'*U-I)
-N2=norm(V'*V-I)
+S, info = svd( A, tols )
+N1=norm(S.U'*S.U-I)
+N2=norm(S.V*S.Vt-I)
 @test N1 < 300.0*eps() && N2 < 300.0*eps() # Test the orthogonality of the eigenvectors
 # @test norm(A*V-U*Diagonal(Σ))< 300.0*eps() # Test residual
 
