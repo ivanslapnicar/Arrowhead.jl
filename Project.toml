@@ -1,6 +1,6 @@
 name = "Arrowhead"
 uuid = "1a029416-38b0-5245-b7ed-67249edcb994"
-version = "1.0.1"
+version = "1.0.0"
 author = ["Ivan Slapničar ivan.slapnicar@fesb.hr"]
 
 [deps]
