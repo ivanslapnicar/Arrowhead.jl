@@ -8,5 +8,5 @@ notifications:
   email: false
 before_install:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-script:
-  - julia -e 'using Pkg; Pkg.clone(pwd());Pkg.build("Arrowhead");Pkg.test("Arrowhead",coverage=true)'
+# script:
+#  - julia -e 'using Pkg; Pkg.clone(pwd());Pkg.build("Arrowhead");Pkg.test("Arrowhead",coverage=true)'
