@@ -601,5 +601,5 @@ function svd(A::HalfArrow{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,
     end
     κ.=κ[es]
     # Return this
-    return SVD(U,Σ,adjoint(V)),κ
+    return SVD(Matrix(U),Σ,Matrix(transpose(V))),κ
 end # svd (all)
