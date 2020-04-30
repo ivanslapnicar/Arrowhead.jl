@@ -83,7 +83,7 @@ println("   HalfArrow with entries varying in magnitude")
 A=HalfArrow(sort(exp.(20*(rand(8).-0.5)),rev=true),(exp.(20*(rand(8).-0.5))))
 S, info = svd( A, tols )
 N1=norm(S.U'*S.U-I)
-N2=norm(S.V*S.Vt-I)
+N2=norm(S.Vt*S.V-I)
 @test N1 < 300.0*eps() && N2 < 300.0*eps() # Test the orthogonality of the eigenvectors
 # @test norm(A*V-U*Diagonal(Σ))< 300.0*eps() # Test residual
 
@@ -116,7 +116,7 @@ E=tdc(W)
 
 println("\n","There are three tests for roots of polynomials")
 println("   Example 1 from [3] - the Wilkinson's polynomial p18")
-p18=Poly([   6402373705728000,
+p18=Polynomial([   6402373705728000,
  -22376988058521600,
   34012249593822720,
  -30321254007719424,
@@ -135,7 +135,7 @@ p18=Poly([   6402373705728000,
               13566,
                -171,
                 1])
-D=roots(polyder(p18))
+D=roots(derivative(p18))
 R,Qout=rootsah(p18,D)
 @test norm(R-collect(18.0:-1:1.0))<5*eps()
 
@@ -145,8 +145,8 @@ e5=[-618970019642690000010608640,
 -6277101735386680066937501969125693243111159424202737451008,
 713623846352979940529142984724747568191373312,
 -20282409603651670423947251286016, 1]
-p5=Poly(map(Float64,e5))
-pd=polyder(p5)
+p5=Polynomial(map(Float64,e5))
+pd=derivative(p5)
 pd=pd/pd[end]
 companion = diagm(-1=>ones(3))
 an = pd[end]
@@ -165,8 +165,8 @@ println("   Example 3 from [3] - the Chebyshev polynomial T[374]")
 # Generate first 374 Chebyshev polynomials in BigFloat
 n=374
 T=Array{Any}(undef,n+1)
-T[1]=Poly([BigFloat(1)])
-T[2]=Poly([BigFloat(0),1])
+T[1]=Polynomial([BigFloat(1)])
+T[2]=Polynomial([BigFloat(0),1])
 for i=3:n+1
     T[i]=2*T[2]*T[i-1]-T[i-2]
 end
