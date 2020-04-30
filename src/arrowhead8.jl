@@ -1,5 +1,5 @@
 # rootsah for BigInt and BigFloat
-function rootsah(pol::Union{Poly{BigInt},Poly{BigFloat}}, D::Vector{Float64})
+function rootsah(pol::Union{Polynomial{BigInt},Polynomial{BigFloat}}, D::Vector{Float64})
     # COMPUTES: the roots of polynomials with all distinct real roots.
     # The computation is forward stable. The program uses SymArrow (arrowhead) companion matrix and
     # corresponding eig routine
@@ -438,13 +438,13 @@ function  eigen( A::SymArrow{T},zD::Vector{BigFloat},αD::BigFloat,k::Int64,
     Float64(λ), Qout
 end # eigen (k)
 
-function rootsWDK(p::Poly{T},x₀::Vector{T1},steps) where {T,T1}
+function rootsWDK(p::Polynomial{T},x₀::Vector{T1},steps) where {T,T1}
     # Polynomial roots with Weierstrass, Durand, Kerner method
     n=length(x₀)
     x=x₀
     for k=1:steps
         for i=1:n
-            x[i]=x[i]-polyval(p,x[i])/(p[end]*prod(x[i].-x[collect([1:i-1;i+1:n])]))
+            x[i]=x[i]-p(x[i])/(p[end]*prod(x[i].-x[collect([1:i-1;i+1:n])]))
         end
     end
     x
