@@ -30,7 +30,7 @@ function tdc(T::SymTridiagonal{S}) where S
 end
 
 # roots
-function rootsah(pol::Union{Poly{Float32},Poly{Float64},Poly{Int32},Poly{Int64}}, D::Vector{Float64})
+function rootsah(pol::Union{Polynomial{Float32},Polynomial{Float64},Polynomial{Int32},Poly{Int64}}, D::Vector{Float64})
     # COMPUTES: the roots of polynomials with all distinct real roots.
     # The computation is forward stable. The program uses SymArrow (arrowhead) companion matrix and
     # corresponding eig routine
