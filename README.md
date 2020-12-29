@@ -3,8 +3,8 @@
 
 ## Notice
 
-This is a major rewrite of the packege with following features:
-* works with Julia 1.0+
+This is a major rewrite of the package with following features:
+* works with Julia 1.5+
 * uses multi-threading
 * memory usage is improved
 
@@ -33,9 +33,9 @@ E,Info=eigen(A)
 U=E.vectors
 ```
 
-For furthaer examples see the file [runtests.jl](tests/runtests.jl).
+For further examples see the file [runtests.jl](tests/runtests.jl).
 
-The package contains routines for __forward stable__ algorithms which compute:
+The package contains functions for __forward stable__ algorithms which compute:
 * all eigenvalues and eigenvectors of a real symmetric arrowhead matrices,
 * all eigenvalues and eigenvectors of rank-one modifications of diagonal matrices (DPR1), and
 * all singular values and singular vectors of half-arrowhead matrices.
@@ -44,36 +44,44 @@ The last class of matrices typically appears in SVD updating problems.
 The algorithms and their analysis are given in the references.
 
 Eigen/singular values are computed in a forward stable manner. Eigen/singular vectors are
-computed entrywise to almost full accuracy, so they are automatically mutually
+computed entry-wise to almost full accuracy, so they are automatically mutually
 orthogonal.  The algorithms are based on a shift-and-invert approach.  Only a
 single element of the inverse of the shifted matrix eventually needs to
 be computed with double the working precision.
 
-The package also contains routines for applications:
-* divide-and-conquer routine for symmetric tridiagonal eigenvalue problem
+The package also contains functions for applications:
+* divide-and-conquer function for symmetric tridiagonal eigenvalue problem
 * roots of real polynomials with real distinct roots.
 
 
 ## Contents
 
 ### Arrowhead and DPR1 Eigenvalues
+
 The file `arrowhead1.jl` contains definitions of types
 `SymArrow` (arrowhead) and `SymDPR1`. Full matrices are accessible
 with `Matrix(A)`.
 
-The file `arrowhead3.jl` contains routines to generate random symmetric
+The file `arrowhead3.jl` contains:
+* functions to generate random symmetric
 arrowhead and DPR1 matrices, `GenSymArrow` and `GenSymDPR1`, respectively,
-three functions `inv()` which compute various inverses of `SymArrow`
-matrices, two functions `bisect()` which compute outer eigenvalues of
-`SymArrow` and `SymDPR1` matrices, the main computational function `eigen()` which
+* three functions `inv()` which compute various inverses of `SymArrow`
+matrices,
+* two functions `bisect()` which compute outer eigenvalues of
+`SymArrow` and `SymDPR1` matrices,
+* the main computational function `eigen()` which
 computes the k-th eigenpair of an ordered unreduced  `SymArrow`,
-and the driver function `eigen()` which computes all eigenvalues and
+and
+* the driver function `eigen()` which computes all eigenvalues and
 eigenvectors of a `SymArrow`.
 
-The file `arrowhead4.jl` contains three functions `inv()` which compute
-various inverses of `SymDPR1` matrices, the main computational function `eigen()`
+The file `arrowhead4.jl` contains:
+* three functions `inv()` which compute
+various inverses of `SymDPR1` matrices,
+* the main computational function `eigen()`
 which computes the k-th eigenpair of an ordered unreduced `SymDPR1`,
-and the driver function `eigen()` which computes all eigenvalues and
+and
+* the driver function `eigen()` which computes all eigenvalues and
 eigenvectors of a `SymDPR1`.
 
 ### Half-arrowhead SVD
@@ -82,11 +90,16 @@ The file `arrowhead5.jl` contains definition of type `HalfArrow`. The type is
 of the form `[Diagonal(A.D) A.z]` where either
 `length(A.z)=length(A.D)`
 or `length(A.z)=length(A.D)+1`, thus giving two possible
-forms of the SVD rank one update.  The file `arrowhead6.jl` contains
-the function `doubledot()`, three functions `inv()` which compute
-various inverses of `HalfArrow` matrices, the main computational function `svd()`
+forms of the SVD rank one update.  
+
+The file `arrowhead6.jl` contains:
+* the function `doubledot()`,
+* three functions `inv()` which compute
+various inverses of `HalfArrow` matrices,
+* the main computational function `svd()`
 which computes the k-th singular value triplet `u, σ, v` of an ordered
-unreduced `HalfArrow`,  and the driver function `svd()` which computes all
+unreduced `HalfArrow`,  and
+* the driver function `svd()` which computes all
 singular values and vectors of a `HalfArrow`.
 
 ### Tridiagonal Divide and Conquer
