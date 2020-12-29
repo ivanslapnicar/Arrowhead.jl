@@ -4,25 +4,62 @@
 #--------  random generation
 
 using Random
+
+"""
+    GenSymArrow(n,i)
+
+Generate Float64 symmetric n x n arrowhad matrix with arrow top at [i,i]
+
+```julia-repl
+julia> GenSymArrow(5,1)
+5×5 SymArrow{Float64}:
+ 0.584625  0.806008  0.930849  0.429042  0.486654
+ 0.806008  0.501669  0.0       0.0       0.0
+ 0.930849  0.0       0.11298   0.0       0.0
+ 0.429042  0.0       0.0       0.273079  0.0
+ 0.486654  0.0       0.0       0.0       0.538883
+ ```
+ """
 function GenSymArrow(n::Integer,i::Integer)
-    # generates symmetric n x n arrowhad matrix with arrow top at (i,i)
+    # generates symmetric n x n arrowhad matrix with arrow top at [i,i]
     SymArrow(rand(n-1),rand(n-1),rand(),i)
 end
 
+"""
+    GenSymDPR1(n)
+
+Generate Float64 symmetric n x n diagonal-plus-rank-one matrix
+
+```julia-repl
+julia> GenSymDPR1(3)
+3×3 SymDPR1{Float64}:
+ 0.714392   0.0365418  0.0129331
+ 0.0365418  0.64058    0.0194102
+ 0.0129331  0.0194102  0.463618
+ ```
+ """
 function GenSymDPR1(n::Integer)
     # generates symmetric n x n DPR1 matrix
     SymDPR1(rand(n),rand(n),rand())
 end
 
 #-------- Inverses
+
+"""
+    inv(A::SymArrow,i,τ)
+
+COMPUTES: inverse of a shifted `SymArrow` matrix A, inv(A-A.D[i]*I) which is again `SymArrow`.
+* τ=[tolb,tolz] are tolerances, default to [1e3, 10*n].
+* `τ=[0.0,0.0]` forces DoubleDouble, `τ=[1e50,1e50]` would never use it.
+Uses higher precision `DoubleDouble` to compute top of the arrow element accurately, if needed.
+
+RETURNS:  SymArrow(D,z,b,i), Kb, Kz, Qout
+* Kb - condition Kb
+* Kz - condition Kz
+* Qout = 1 / 0 - double was / was not used
+"""
 function inv(A::SymArrow{T},i::Integer,τ::Vector{Float64}=[1e3;10.0*length(A.D)]) where T
-    # COMPUTES: inverse of a SymArrow matrix A, inv(A-A.D[i]*I) which is again SymArrow
-    # uses higher precision to compute top of the arrow element accurately, if
-    # needed.
-    # τ=[tolb,tolz] are tolerances, usually [1e3, 10*n]
-    # [0.0,0.0] forces DoubleDouble, [1e50,1e50] would never use it
-    # RETURNS:  SymArrow(D,z,b,i), Kb, Kz, Qout
-    # Kb - condition Kb, Kz - condition Kz, Qout = 1 / 0 - double was / was not used
+
 
     n=length(A.D)
     D=Array{T}(undef,n)
@@ -107,16 +144,12 @@ function inv(A::SymArrow{T},i::Integer,τ::Vector{Float64}=[1e3;10.0*length(A.D)
     end
 end # inv
 
-function inv!(B::SymArrow{T},A::SymArrow{T},i::Integer,τ::Vector{Float64}=[1e3;10.0*length(A.D)]) where T
-    # In-place version!
-    # COMPUTES: inverse of a SymArrow matrix A, inv(A-A.D[i]*I) which is again SymArrow
-    # uses higher precision to compute top of the arrow element accurately, if
-    # needed.
-    # τ=[tolb,tolz] are tolerances, usually [1e3, 10*n]
-    # [0.0,0.0] forces DoubleDouble, [1e50,1e50] would never use it
-    # RETURNS:  B=SymArrow(D,z,b,i), Kb, Kz, Qout
-    # Kb - condition Kb, Kz - condition Kz, Qout = 1 / 0 - double was / was not used
+"""
+    inv!(A::SymArrow,i,τ)
 
+An in-place version of `inv(A::SymArrow,i,τ)`.
+"""
+function inv!(B::SymArrow{T},A::SymArrow{T},i::Integer,τ::Vector{Float64}=[1e3;10.0*length(A.D)]) where T
     n=length(A.D)
     # D=Array{T}(undef,n)
     # z=Array{T}(undef,n)
@@ -210,13 +243,21 @@ function inv!(B::SymArrow{T},A::SymArrow{T},i::Integer,τ::Vector{Float64}=[1e3;
     end
 end # inv!
 
-function inv(A::SymArrow{T}, σ::Float64, τ::Float64=1.0e3) where T
-    # COMPUTES: inverse of the shifted SymArrow A, inv(A-σ*I) which is SymDPR1
-    # uses DoubleDouble to compute rho accurately, if needed.
-    # τ is tolerance, usually 1e3,  0.0 forces Double, 1e50 would never use it
-    # RETURNS: SymDPR1(D,u,ρ), Kρ, Qout
-    # Kρ - condition Kρ, Qout = 1 / 0 - Double was / was not used
+"""
+    inv(A::SymArrow,σ::Float64,τ)
 
+COMPUTES: inverse of the shifted SymArrow A, inv(A-σ*I) which is SymDPR1.
+* τ is tolerance, usually 1e3,  0.0 forces Double, 1e50 would never use it
+* `τ=[0.0,0.0]` forces DoubleDouble, `τ=[1e50,1e50]` would never use it.
+* Uses `DoubleDouble` to compute `r` accurately, if needed.
+
+
+
+RETURNS: SymDPR1(D,u,ρ), Kρ, Qout
+* Kρ - condition Kρ,
+* Qout = 1 / 0 - Double was / was not used.
+"""
+function inv(A::SymArrow{T}, σ::Float64, τ::Float64=1.0e3) where T
     n=length(A.D)
     D=Array{T}(undef,n+1)
     u=Array{T}(undef,n+1)
@@ -290,6 +331,15 @@ function inv(A::SymArrow{T}, σ::Float64, τ::Float64=1.0e3) where T
     SymDPR1(D,u,ρ), Kρ, Qout
 end # inv
 
+"""
+    inv(A::SymArrow,σ::Double)
+
+COMPUTES: inverse of the shifted SymArrow A, inv(A-σ*I) which is SymDPR1.
+Here shift is `Double` so it uses `DoubleDouble` to compute everything.
+
+RETURNS: SymDPR1(D₁,u₁,ρ), Qout
+* Qout = 1 on exit meaning `DoubleDouble` was used.
+"""
 function inv(A::SymArrow{T}, σ::Double) where T
     # COMPUTES: inverse of the shifted SymArrow A, inv(A-shift*I), which is a SymDPR1
     # here shift is Double so it uses Double to compute everything
@@ -351,21 +401,23 @@ mutable struct Info
     Qout::Int
 end
 
+"""
+    eigen(A::SymArrow, Ainv::SymArrow, k, τ)
 
+COMPUTES: k-th eigenpair of an ordered irreducible SymArrow
+A = [Diagonal(D) z; z' a] where
+τ=[tolb,tolz,tolnu,tolrho,tollambda] = [1e3,10.0*n,1e3,1e3,1e3]
+
+RETURNS: λ,v, Info
+* λ is  the k-th eigenvalue in descending order
+* v is λ's normalized eigenvector
+* Info = Sind, Kb, Kz, Kν, Kρ, Qout
+* Sind = shift index i for the k-th eigenvalue
+* Kb, Kz, Kν, Kρ - condition numbers
+* Qout = 1 / 0 - Double was / was not used
+"""
 function  eigen( A::SymArrow{T}, Ainv::SymArrow{T}, k::Integer,
     τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,1e3]) where T
-    # COMPUTES: k-th eigenpair of an ordered irreducible SymArrow
-    # A = [Diagonal(D) z; z' alpha]
-    # τ=[tolb,tolz,tolnu,tolrho,tollambda] = [1e3,10.0*n,1e3,1e3,1e3]
-    # RETURNS: λ,v, Info
-    # where
-    # λ - k-th eigenvalue in descending order
-    # v - λ's normalized eigenvector
-    # Info = Sind, Kb, Kz, Kν, Kρ, Qout
-    # Sind = shift index i for the k-th eigenvalue
-    # Kb, Kz, Kν, Kρ - condition numbers
-    # Qout = 1 / 0 - Double was / was not used
-
     # Set the dimension
     n = length(A.D) + 1
     # Set all conditions initially to zero
@@ -497,18 +549,22 @@ function  eigen( A::SymArrow{T}, Ainv::SymArrow{T}, k::Integer,
     λ,v,κ
 end # eigen(k)
 
-function eigen(A::SymArrow{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,1e3]) where T
-    # COMPUTES: all eigenvalues and eigenvectors of a real symmetric SymArrow
-    # A = [diag(D) z;z' alpha] (notice, here we assume A.i==n)
-    # τ = [tolb,tolz,tolnu,tolrho,tollambda] = [1e3,10.0*n,1e3,1e3,1e3] or similar
-    # RETURNS: Eigen(Λ,U), κ
-    # where
-    # Λ = eigenvalues in decreasing order, U = eigenvectors,
-    # κ[k]=Info(Sind[k], Kb[k], Kz[k], Kν[k], Kρ[k], Qout[k])
-    # Sind[k] - shift index i for the k-th eigenvalue
-    # Kb, Kz, Kν, Kρ [k] - respective conditions for the k-th eigenvalue
-    # Qout[k] = 1 / 0 - Double was / was not used when computing k-th eigenvalue
+"""
+    eigen(A::SymArrow,τ)
 
+COMPUTES: all eigenvalues and eigenvectors of a real symmetric SymArrow
+A = [diag(D) z;z' a] (notice, here we assume A.i==n)
+
+τ = [tolb,tolz,tolnu,tolrho,tollambda] = [1e3,10.0*n,1e3,1e3,1e3] or similar
+
+RETURNS: Eigen(Λ,U), κ
+* Λ = eigenvalues in decreasing order, U = eigenvectors,
+* κ[k]=Info(Sind[k], Kb[k], Kz[k], Kν[k], Kρ[k], Qout[k])
+* Sind[k] - shift index i for the k-th eigenvalue
+* Kb, Kz, Kν, Kρ [k] - respective conditions for the k-th eigenvalue
+* Qout[k] = 1 / 0 - Double was / was not used when computing k-th eigenvalue
+"""
+function eigen(A::SymArrow{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,1e3]) where T
     n=length(A.D)+1
     n0=n
     # Ordering the matrix
@@ -600,11 +656,15 @@ function eigen(A::SymArrow{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3
     return Eigen(Λ,U),κ
 end # eigen (all)
 
-function bisect(A::SymArrow{T}, side::Char) where T
-    # COMPUTES: the leftmost (for side='L') or the rightmost (for side='R') eigenvalue
-    # of a SymArrow A = [diag (D) z; z'] by bisection.
-    # RETURNS: the eigenvalue
+"""
+    bisect(A::SymArrow, side::Char)
 
+COMPUTES: the leftmost (for side='L') or the rightmost (for side='R') eigenvalue
+of a SymArrow A = [diag (D) z; z' a] by bisection.
+
+RETURNS: the eigenvalue
+"""
+function bisect(A::SymArrow{T}, side::Char) where T
     # Determine the starting interval for bisection, [left; right]
     # left, right = side == 'L' ? {minimum([A.D-abs(A.z),A.a-sum(abs(A.z))]), minimum(A.D)} :
     #   {maximum(A.D),maximum([A.D+abs.(A.z),A.a+sum(abs,A.z)])}
@@ -646,10 +706,15 @@ function bisect(A::SymArrow{T}, side::Char) where T
     right
 end # bisect
 
+"""
+    bisect( A::SymDPR1, side::Char )
+
+COMPUTES: the leftmost (for side='L') or the rightmost (for side='R') eigenvalue
+of a SymDPR1 matrix A = diagm(A.D) + A.r*A.u*(A.u)' by bisection.
+
+RETURNS: the eigenvalue
+"""
 function bisect( A::SymDPR1, side::Char )
-    # COMPUTES: the leftmost (for side='L') or the rightmost (for side='R') eigenvalue
-    # of a SymDPR1 matrix A = diagm(A.D) + A.r*A.u*(A.u)' by bisection.
-    # RETURNS: the eigenvalue
 
     n=length(A.D)
     # Determine the starting interval for bisection, [left; right]

@@ -1,4 +1,27 @@
 # Define a Half Arrow Matrix Type
+"""
+    HalfArrow(D,z)
+
+Define a HalfArrow matrix with diagonal D and side z.
+The shape depends on the length of z.
+
+```julia-repl
+julia> HalfArrow([1,2,3,4],[1,1,1,1])
+4×5 HalfArrow{Int64}:
+ 1  0  0  0  1
+ 0  2  0  0  1
+ 0  0  3  0  1
+ 0  0  0  4  1
+
+julia> HalfArrow([1,2,3,4],[1,1,1,1,1])
+5×5 HalfArrow{Int64}:
+ 1  0  0  0  1
+ 0  2  0  0  1
+ 0  0  3  0  1
+ 0  0  0  4  1
+ 0  0  0  0  1
+ ```
+"""
 mutable struct HalfArrow{T} <: AbstractMatrix{T}
     D::Vector{T} # diagonal
     z::Vector{T} # last column

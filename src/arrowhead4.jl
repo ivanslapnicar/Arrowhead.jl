@@ -1,14 +1,23 @@
 #-------- Inverses of DPR1
 
+"""
+    inv(A::SymDPR1,i,τ)
+
+COMPUTES: inverse of a shifted `SymDPR1` matrix A=Diagonal(A.D)+A.r*A.u*A.u',
+inv(A-A.D[i]*I) which is a `SymArrow`.
+* τ=[tolb,tolz] are tolerances, defaulting to [1e3, 10*n]
+* [0.0,0.0] forces `DoubleDouble`, [1e50,1e50] would never use it
+* Uses higher precision `DoubleDouble` to compute top of the arrow element accurately, if
+needed.
+
+
+RETURNS:  SymArrow(D,z,b,i), Kb, Kz, Qout
+* Kb - condition Kb
+* Kz - condition Kz
+* Qout = 1 / 0 - double was / was not used
+"""
 function inv(A::SymDPR1{T},i::Integer,τ::Vector{Float64}=[1e3,10.0*length(A.D)]) where T
-    # COMPUTES: inverse of a shifted SymDPR1 matrix A=diagm(A.D)+A.r*A.u*A.u',
-    # inv(A-A.D[i]*I) which is a SymArrow.
-    # Uses higher precision to compute top of the arrow element accurately, if
-    # needed.
-    # τ=[tolb,tolz] are tolerances, usually [1e3, 10*n]
-    # [0.0,0.0] forces DoubleDouble, [1e50,1e50] would never use it
-    # RETURNS:  SymArrow(D,z,b,i), Kb, Kz, Qout
-    # Kb - condition Kb, Kz - condition Kz, Qout = 1 / 0 - double was / was not used
+
     n=length(A.D)
     D=Array{T}(undef,n-1)
     z=Array{T}(undef,n-1)
@@ -72,16 +81,13 @@ function inv(A::SymDPR1{T},i::Integer,τ::Vector{Float64}=[1e3,10.0*length(A.D)]
     SymArrow(D,z,b,i),Kb,Kz,Qout
 end # inv
 
+"""
+    inv!(B::SymArrow,A::SymDPR1,i,τ)
+
+An in-place version of `inv!(A::SymDPR1,i,τ)`.
+"""
 function inv!(B::SymArrow{T},A::SymDPR1{T},i::Integer,τ::Vector{Float64}=[1e3,10.0*length(A.D)]) where T
-    # In-place version!
-    # COMPUTES: inverse of a shifted SymDPR1 matrix A=diagm(A.D)+A.r*A.u*A.u',
-    # inv(A-A.D[i]*I) which is a SymArrow.
-    # Uses higher precision to compute top of the arrow element accurately, if
-    # needed.
-    # τ=[tolb,tolz] are tolerances, usually [1e3, 10*n]
-    # [0.0,0.0] forces DoubleDouble, [1e50,1e50] would never use it
-    # RETURNS:  SymArrow(D,z,b,i), Kb, Kz, Qout
-    # Kb - condition Kb, Kz - condition Kz, Qout = 1 / 0 - double was / was not used
+
     n=length(A.D)
     # D=Array{T}(undef,n-1)
     # z=Array{T}(undef,n-1)
@@ -152,13 +158,20 @@ function inv!(B::SymArrow{T},A::SymDPR1{T},i::Integer,τ::Vector{Float64}=[1e3,1
     return Kb,Kz,Qout
 end # inv!
 
+"""
+    inv(A::SymDPR1,σ,τ)
+
+COMPUTES: inverse of the shifted `SymDPR1` matrix A = Diagonal(A.D)+A.r*A.u*A.u',
+inv(A-σ*I) = D + ρ*u*u', σ!=A.D[i], which is again a `SymDPR1`.
+* τ is tolerance, default is 1e3,  0.0 forces Double, 1e50 would never use it.
+* Uses `DoubleDouble` to compute A.r accurately, if needed.
+
+RETURNS: SymDPR1(D,u,ρ), Kρ, Qout
+* Kρ - condition Kρ
+* Qout = 1 / 0 - Double was / was not used
+"""
 function inv(A::SymDPR1{T}, σ::Float64, τ::Float64=1.0e3) where T
-    # COMPUTES: inverse of the σed SymDPR1 A = diagm(A.D)+A.r*A.u*A.u',
-    # inv(A-σ*I) = D + ρ*u*u', σ!=A.D[i], which is again a SymDPR1
-    # uses DoubleDouble to compute A.r accurately, if needed.
-    # τ is tolerance, usually 1e3,  0.0 forces Double, 1e50 would never use it
-    # RETURNS: SymDPR1(D,u,ρ), Kρ, Qout
-    # Kρ - condition Kρ, Qout = 1 / 0 - Double was / was not used
+
     n=length(A.D)
     D=Array{T}(undef,n)
     u=Array{T}(undef,n)
@@ -211,12 +224,19 @@ function inv(A::SymDPR1{T}, σ::Float64, τ::Float64=1.0e3) where T
     SymDPR1(D,u,ρ), Kρ, Qout
 end # inv
 
+"""
+    inv(A::SymDPR1,σ::Double)
+
+COMPUTES: inverse of the shifted `SymDPR1` matrix A = Diagonal(A.D)+A.r*A.u*A.u',
+inv(A-σ*I) = D + ρ*u*u', σ!=A.D[i], which is again a `SymDPR1`.
+
+Here σ is `Double` so it uses `DoubleDouble` to compute everything
+
+RETURNS: SymDPR1(D,u,ρ), Qout
+* Qout = 1 on exit meaning Double was used.
+"""
 function inv(A::SymDPR1{T}, σ::Double) where T
-    # COMPUTES: inverse of the σed SymDPR1 A = diagm(A.D)+A.r*A.u*A.u',
-    # inv(A-σ*I) = D + ρ*u*u', σ!=A.D[i], which is again a SymDPR1
-    # here σ is Double so it uses Double to compute everything
-    # RETURNS: SymDPR1(D,u,ρ), Qout
-    # Qout = 1 on exit meaning Double was used
+
     n=length(A.D)
     D=Array(Double,n)
     u=Array(Double,n)
@@ -251,19 +271,24 @@ function inv(A::SymDPR1{T}, σ::Double) where T
     SymDPR1(D1,u1,ρ), Qout
 end # inv
 
+"""
+    eigen(A::SymDPR1, Ainv::SymArrow, k::Integer, τ)
+
+COMPUTES: k-th eigenpair of an ordered irreducible SymDPR1
+A = Diagonal(A.D)+A.r*A.u*A.u', A.r > 0
+* τ=[tolb,tolz,tolnu,tolrho,tollambda] = [1e3,10.0*n,1e3,1e3,1e3]
+
+RETURNS: λ, v, Info
+* λ is the k-th eigenvalue in descending order
+* v is λ's normalized eigenvector
+* Info = Sind, Kb, Kz, Kν, Kρ, Qout
+* Sind = shift index i for the k-th eigenvalue
+* Kb, Kz, Kν, Kρ - condition numbers
+* Qout = 1 / 0 - Double was / was not used
+"""
 function  eigen( A::SymDPR1{T}, Ainv::SymArrow{T}, k::Integer,
     τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,1e3]) where T
-    # COMPUTES: k-th eigenpair of an ordered irreducible SymDPR1
-    # A = Diagonal(A.D)+A.r*A.u*A.u', A.r > 0
-    # τ=[tolb,tolz,tolnu,tolrho,tollambda] = [1e3,10.0*n,1e3,1e3,1e3]
-    # RETURNS: λ, v, Info
-    # where
-    # λ - k-th eigenvalue in descending order
-    # v - λ's normalized eigenvector
-    # Info = Sind, Kb, Kz, Kν, Kρ, Qout
-    # Sind = shift index i for the k-th eigenvalue
-    # Kb, Kz, Kν, Kρ - condition numbers
-    # Qout = 1 / 0 - Double was / was not used
+
     # Set the dimension
     n = length(A.D)
     # Set all conditions initially to zero
@@ -396,17 +421,21 @@ function  eigen( A::SymDPR1{T}, Ainv::SymArrow{T}, k::Integer,
     λ,v,κ
 end # eigen (k)
 
+"""
+    eigen(A::SymDPR1, τ)
+
+COMPUTES: all eigenvalues and eigenvectors of a real symmetric SymDPR1
+A = Diagonal(A.D)+A.r*A.u*A.u'
+* τ = [tolb,tolz,tolnu,tolrho,tollambda] = [1e3,10.0*n,1e3,1e3,1e3] or similar
+
+RETURNS: Eigen(Λ,U), κ
+* Λ = eigenvalues in decreasing order, U = eigenvectors
+* κ[k]=Info(Sind[k], Kb[k], Kz[k], Kν[k], Kρ[k], Qout[k]
+* Sind[k] - shift index i for the k-th eigenvalue
+* Kb, Kz, Kν, Kρ [k] - respective conditions for the k-th eigenvalue
+* Qout[k] = 1 / 0 - Double was / was not used when computing k-th eigenvalue
+"""
 function eigen(A::SymDPR1{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,1e3]) where T
-    # COMPUTES: all eigenvalues and eigenvectors of a real symmetric SymDPR1
-    # A = Diagonal(A.D)+A.r*A.u*A.u'
-    # τ = [tolb,tolz,tolnu,tolrho,tollambda] = [1e3,10.0*n,1e3,1e3,1e3] or similar
-    # RETURNS: Eigen(Λ,U), κ
-    # where
-    # Λ = eigenvalues in decreasing order, U = eigenvectors,
-    # κ[k]=Info(Sind[k], Kb[k], Kz[k], Kν[k], Kρ[k], Qout[k]
-    # Sind[k] - shift index i for the k-th eigenvalue
-    # Kb, Kz, Kν, Kρ [k] - respective conditions for the k-th eigenvalue
-    # Qout[k] = 1 / 0 - Double was / was not used when computing k-th eigenvalue
 
     n=length(A.D)
     n0=n

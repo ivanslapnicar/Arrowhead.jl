@@ -1,7 +1,22 @@
 import Base:size, getindex, convert
 import LinearAlgebra: eigen, inv, svd
 
-# Define a Symmetric Arrow Matrix Type
+"""
+    SymArrow(D,z,a,i)
+
+Define a (permuted) Symmetric Arrow Matrix with shaft D, border z,
+and arrow top a at position [i,i]
+
+```julia-repl
+julia> SymArrow([1,2,3,4],[1,1,1,1],-3,5)
+5×5 SymArrow{Int64}:
+ 1  0  0  0   1
+ 0  2  0  0   1
+ 0  0  3  0   1
+ 0  0  0  4   1
+ 1  1  1  1  -3
+ ```
+"""
 mutable struct SymArrow{T} <: AbstractMatrix{T}
     D::Vector{T} # diagonal
     z::Vector{T} # 1st row[2:n]
@@ -33,7 +48,20 @@ Matrix(A::SymArrow{T}) where T =[A[i,j] for i=1:size(A,1), j=1:size(A,2)]
 
 #-------------------------------------------------------
 
-# Define a Symmetric Diagonal+Rank-One Type
+"""
+    SymDPR1(D,z,r)
+
+Define a Symmetric Diagonal+Rank-One matrix `A=Diagonal(D)+r*z*z'`.
+
+```julia-repl
+julia> SymDPR1([1,2,3,4],[1,1,1,1],3)
+4×4 SymDPR1{Int64}:
+ 4  3  3  3
+ 3  5  3  3
+ 3  3  6  3
+ 3  3  3  7
+ ```
+"""
 mutable struct SymDPR1{T} <: AbstractMatrix{T}
     D::Vector{T} # diagonal
     u::Vector{T} # rank one, length n

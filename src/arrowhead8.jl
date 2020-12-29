@@ -1,4 +1,10 @@
 # rootsah for BigInt and BigFloat
+
+"""
+    rootsah(pol::Union{Polynomial{BigInt},Polynomial{BigFloat}}, D::Vector)
+
+Version of `rootsah(pol::Polynomial, D::Vector,τ)` for `BigInt` of `BigFloat` polynomials.
+"""
 function rootsah(pol::Union{Polynomial{BigInt},Polynomial{BigFloat}}, D::Vector{Float64})
     # COMPUTES: the roots of polynomials with all distinct real roots.
     # The computation is forward stable. The program uses SymArrow (arrowhead) companion matrix and
@@ -11,7 +17,7 @@ function rootsah(pol::Union{Polynomial{BigInt},Polynomial{BigFloat}}, D::Vector{
     # Type is BigFloat
     T = BigFloat
 
-    # τ = [1e2,1e2,1e2,1e2,1e2] or similar is the vector of tolerances for eig
+    # τ = [1e2,1e2,1e2,1e2,1e2] or similar is the vector of tolerances for eigen
     τ=[1e2,1e2,1e2,1e2,1e2]
 
     Dm=map(T,D)
@@ -82,6 +88,12 @@ end
 
 #-------- Inverses
 
+"""
+    inv(A::SymArrow,zD::Vector{BigFloat}, αD::BigFloat,i,τ)
+
+Version of `inv(A::SymArrow, i, τ)` for use with
+`rootsah(pol::Union{Polynomial{BigInt},Polynomial{BigFloat}}, D::Vector)`.
+"""
 function inv(A::SymArrow{T},zD::Vector{BigFloat}, αD::BigFloat,i::Int64,τ::Vector{Float64}=[1e3, 10*length(A.D)]) where T
     # COMPUTES: inverse of a SymArrow matrix A, inv(A-A.D[i]*I) which is again SymArrow
     # uses higher precision to compute top of the arrow element accurately, if
@@ -167,6 +179,12 @@ function inv(A::SymArrow{T},zD::Vector{BigFloat}, αD::BigFloat,i::Int64,τ::Vec
     end
 end # inv
 
+"""
+    inv(A::SymArrow, zD::Vector{BigFloat},αD::BigFloat, σ::Float64, τ)
+
+Version of `inv(A::SymArrow, σ::Float64, τ)` for use with
+`rootsah(pol::Union{Polynomial{BigInt},Polynomial{BigFloat}}, D::Vector,τ)`.
+"""
 function inv(A::SymArrow{T}, zD::Vector{BigFloat}, αD::BigFloat, σ::Float64, τ::Float64=1.0e3) where T
     # COMPUTES: inverse of the shifted SymArrow A, inv(A-shift*I) which is SymDPR1
     # uses DoubleDouble to compute ρ accurately, if needed.
@@ -227,6 +245,12 @@ function inv(A::SymArrow{T}, zD::Vector{BigFloat}, αD::BigFloat, σ::Float64, �
     SymDPR1(D,u,ρ), Kρ, Qout
 end # inv
 
+"""
+    inv(A::SymArrow, zD::Vector{BigFloat},αD::BigFloat, σ::BigFloat)
+
+Version of `inv(A::SymArrow, σ::Double)` for use with
+`rootsah(pol::Union{Polynomial{BigInt},Polynomial{BigFloat}}, D::Vector,τ)`.
+"""
 function inv(A::SymArrow{T}, zD::Vector{BigFloat}, αD::BigFloat, σ::BigFloat) where T
     # COMPUTES: inverse of the shifted SymArrow A, inv(A-σ*I), which is a SymDPR1
     # here σ is BigFloat so it uses double the working precision to compute everything
@@ -283,7 +307,12 @@ function inv(A::SymArrow{T}, zD::Vector{BigFloat}, αD::BigFloat, σ::BigFloat) 
     SymDPR1(D1,u1,ρ), Qout
 end # inv
 
+"""
+    eigen(A::SymArrow, zD::Vector{BigFloat}, αD::BigFloat, k, τ)
 
+Version of `eigen(A::SymArrow, k, τ)` for use with
+`rootsah(pol::Union{Polynomial{BigInt},Polynomial{BigFloat}}, D::Vector,τ)`.
+"""
 function  eigen( A::SymArrow{T},zD::Vector{BigFloat},αD::BigFloat,k::Int64,
     τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,1e3]) where T
     # COMPUTES: k-th eigenvalue of an ordered irreducible SymArrow
@@ -438,6 +467,11 @@ function  eigen( A::SymArrow{T},zD::Vector{BigFloat},αD::BigFloat,k::Int64,
     Float64(λ), Qout
 end # eigen (k)
 
+"""
+    rootsWDK(p::Polynomial{T},x₀::Vector{T1},steps)
+
+Polynomial roots with Weierstrass, Durand, Kerner method.
+"""
 function rootsWDK(p::Polynomial{T},x₀::Vector{T1},steps) where {T,T1}
     # Polynomial roots with Weierstrass, Durand, Kerner method
     n=length(x₀)

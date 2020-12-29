@@ -1,8 +1,14 @@
+"""
+    tdc(T::SymTridiagonal)
+
+Tridiagonal divide-and-conquer using arrowhead matrices.
+
+COMPUTES: eigenvectors U and eigenvalues Λ of a SymTridiagonal matrix T, T = U*Diagonal(Λ)*U'.
+
+RETURNS: Eigen(Λ, U)
+"""
 function tdc(T::SymTridiagonal{S}) where S
-    # Tridiagonal divide-and-conquer using arrowhead matrices
-    # COMPUTES: eigenvectors U and eigenvalues Λ of a SymTridiagonal matrix T,
-    # T = U*Diagonal(Λ)*U'
-    # RETURNS: Eigen(Λ, U)
+
     n=length(T.dv)
     # set the tolerances for eigen
     E=Eigen(Vector{Float64}(undef,1),Array{Float64}(undef,1,1))
@@ -30,20 +36,25 @@ function tdc(T::SymTridiagonal{S}) where S
 end
 
 # roots
-function rootsah(pol::Union{Polynomial{Float32},Polynomial{Float64},Polynomial{Int32},Polynomial{Int64}}, D::Vector{Float64})
-    # COMPUTES: the roots of polynomials with all distinct real roots.
-    # The computation is forward stable. The program uses SymArrow (arrowhead) companion matrix and
-    # corresponding eig routine
-    # D are barycentric coordinates - elements od D must interpolate the roots of P,
-    # for example
-    #              D=roots(polyder(pol))
-    # RETURNS: roots E
+
+"""
+    rootsah(pol::Polynomial, D::Vector,τ)
+
+COMPUTES: the roots of polynomials with all distinct real roots.
+* τ is the vector of tolerances for `eigen()`, defaults to [1e2,1e2,1e2,1e2,1e2].
+* The computation is forward stable. The program uses `SymArrow` (arrowhead) companion
+matrix and the corresponding `eigen()` function
+* D are barycentric coordinates - elements of D must interpolate the roots of P,
+for example `D=roots(polyder(pol))`
+
+RETURNS: roots, Qout
+* Qout[k] = 1 / 0 - Double was / was not used when computing k-th root
+"""
+function rootsah(pol::Union{Polynomial{Float32},Polynomial{Float64},Polynomial{Int32},
+    Polynomial{Int64}}, D::Vector{Float64},τ::Vector{Float64}=[1e2,1e2,1e2,1e2,1e2])
 
     # Type is Float64
     T = Float64
-
-    # τ = [1e2,1e2,1e2,1e2,1e2] or similar is the vector of tolerances for eig
-    τ=[1e2,1e2,1e2,1e2,1e2]
     Dm=map(T,D)
     Dm=sort(Dm,rev=true)
     D=sort(D,rev=true)
@@ -113,6 +124,11 @@ end
 
 #-------- Inverses
 
+"""
+    inv(A::SymArrow, zD::Vector{Double},αD::Double, i, τ)
+
+Version of `inv(A::SymArrow, i, τ)` for use with `rootsah(pol::Polynomial, D::Vector,τ)`.
+"""
 function inv(A::SymArrow{T},zD::Vector{Double{T}}, αD::Double{T},i::Int64,τ::Vector{Float64}=[1e3, 10*length(A.D)]) where T
     # COMPUTES: inverse of a SymArrow matrix A, inv(A-A.D[i]*I) which is again SymArrow
     # uses higher precision to compute top of the arrow element accurately, if
@@ -201,6 +217,11 @@ function inv(A::SymArrow{T},zD::Vector{Double{T}}, αD::Double{T},i::Int64,τ::V
     end
 end # inv
 
+"""
+    inv(A::SymArrow, zD::Vector{Double},αD::Double, σ::Float64, τ)
+
+Version of `inv(A::SymArrow, σ::Float64, τ)` for use with `rootsah(pol::Polynomial, D::Vector,τ)`.
+"""
 function inv(A::SymArrow{T}, zD::Vector{Double{T}}, αD::Double{T}, σ::Float64, τ::Float64=1.0e3) where T
     # COMPUTES: inverse of the shifted SymArrow A, inv(A-σ*I) which is SymDPR1
     # uses DoubleDouble to compute ρ accurately, if needed.
@@ -261,9 +282,14 @@ function inv(A::SymArrow{T}, zD::Vector{Double{T}}, αD::Double{T}, σ::Float64,
     SymDPR1(D,u,ρ), Kρ, Qout
 end # inv
 
+"""
+    inv(A::SymArrow, zD::Vector{Double},αD::Double, σ::Double)
+
+Version of `inv(A::SymArrow, σ::Double)` for use with `rootsah(pol::Polynomial, D::Vector,τ)`.
+"""
 function inv(A::SymArrow{T}, zD::Vector{Double{T}}, αD::Double{T}, σ::Double{Float64}) where T
-    # COMPUTES: inverse of the σed SymArrow A, inv(A-σ*I), which is a SymDPR1
-    # here σ is Double so it uses Double to compute everything
+    # COMPUTES: inverse of the σed SymArrow A, inv(A-σ*I), which is a SymDPR1.
+    # Here σ is Double so it uses Double to compute everything.
     # RETURNS: SymDPR1(D1,u1,ρ), Qout
     # Qout = 1 on exit meaning Double was used
 
@@ -317,6 +343,11 @@ function inv(A::SymArrow{T}, zD::Vector{Double{T}}, αD::Double{T}, σ::Double{F
     SymDPR1(D₁,u₁,ρ), Qout
 end # inv
 
+"""
+    eigen(A::SymArrow, zD::Vector{Double}, αD::Double, k, τ)
+
+Version of `eigen(A::SymArrow, k, τ)` for use with `rootsah(pol::Polynomial, D::Vector,τ)`.
+"""
 function  eigen( A::SymArrow{T},zD::Vector{Double{T}},αD::Double{T},k::Int64,
     τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,1e3]) where T
     # COMPUTES: k-th eigenvalue of an ordered irreducible SymArrow

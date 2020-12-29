@@ -12,9 +12,30 @@ function doubledot(x::Vector{Float64}, y::Vector{Float64})
     dsum
 end
 
+"""
+    GenHalfArrow(n,p)
+
+Generate n x n half Float64 HalfArrow matrix with/out arrow tip.
+
+```julia-repl
+julia> GenHalfArrow(5,0)
+4×5 HalfArrow{Float64}:
+ 0.455178  0.0       0.0       0.0        0.0645957
+ 0.0       0.179426  0.0       0.0       -0.357693
+ 0.0       0.0       0.399762  0.0       -0.0787062
+ 0.0       0.0       0.0       0.382529  -0.0462763
+
+julia> GenHalfArrow(5,1)
+5×5 HalfArrow{Float64}:
+ 0.0947275  0.0        0.0       0.0        0.44369
+ 0.0        0.281347   0.0       0.0       -0.0544719
+ 0.0        0.0       -0.159244  0.0        0.00970755
+ 0.0        0.0        0.0       0.022077  -0.381765
+ 0.0        0.0        0.0       0.0       -0.177004
+ ```
+ """
 function GenHalfArrow(n::Integer, p::Int)
-    # generates n x n half arrowhad matrix with/out arrow top
-    # This is one without arrowhead point
+    # This is one without arrow tip
     p==0 ?
     HalfArrow(rand(n-1).-0.5,rand(n-1).-0.5) :
     # This is one with the point
@@ -23,15 +44,22 @@ end
 
 #-------- Inverses
 
+"""
+    inv(A::HalfArrow, i, τ)
+
+COMPUTES: inverse of a `SymArrow` matrix B, where B=A'*A, and A =[A.D, A.z]
+is the `HalfArrow`. Here inv(B-B.D[i]*I) is again `SymArrow`.
+
+Uses higher precision to compute top of the arrow element accurately, if needed.
+* τ=[tolb,tolz] are tolerances, defaulting to [1e3, 10*n]
+* [0.0,0.0] forces DoubleDouble, [1e50,1e50] would never use it
+
+RETURNS:  SymArrow(D,z,b,i), Kb, Kz, Qout
+* Kb - condition Kb
+* Kz - condition Kz
+* Qout = 1 / 0 - double was / was not used
+"""
 function inv(A::HalfArrow{T},i::Integer,τ::Vector{Float64}=[1e3, 10*length(A.D)]) where T
-    # COMPUTES: inverse of a SymArrow matrix B, where B=A'*A, and A =[A.D, A.z]
-    # is the HalfArrow. Here inv(B-B.D[i]*I) is again SymArrow.
-    # Uses higher precision to compute top of the arrow element accurately, if
-    # needed.
-    # τ=[tolb,tolz] are tolerances, usually [1e3, 10*n]
-    # [0.0,0.0] forces DoubleDouble, [1e50,1e50] would never use it
-    # RETURNS:  SymArrow(D,z,b,i), Kb, Kz, Qout
-    # Kb - condition Kb, Kz - condition Kz, Qout = 1 / 0 - double was / was not used
 
     n=length(A.D)
     D=Array{T}(undef,n)
@@ -108,16 +136,13 @@ function inv(A::HalfArrow{T},i::Integer,τ::Vector{Float64}=[1e3, 10*length(A.D)
     SymArrow(D,z,b,i),Kb,Kz,Qout
 end # inv
 
+"""
+    inv!(B::SymArrow, A::HalfArrow, i, τ)
+
+An in-place version of `inv(A::HalfArrow, i, τ)`.
+"""
 function inv!(B::SymArrow{T},A::HalfArrow{T},i::Integer,τ::Vector{Float64}=[1e3, 10*length(A.D)]) where T
-    # In-place version!
-    # COMPUTES: inverse of a SymArrow matrix B, where B=A'*A, and A =[A.D, A.z]
-    # is the HalfArrow. Here inv(B-B.D[i]*I) is again SymArrow.
-    # Uses higher precision to compute top of the arrow element accurately, if
-    # needed.
-    # τ=[tolb,tolz] are tolerances, usually [1e3, 10*n]
-    # [0.0,0.0] forces DoubleDouble, [1e50,1e50] would never use it
-    # RETURNS:  SymArrow(D,z,b,i), Kb, Kz, Qout
-    # Kb - condition Kb, Kz - condition Kz, Qout = 1 / 0 - double was / was not used
+
     n=length(A.D)
     # D=Array{T}(undef,n)
     # z=Array{T}(undef,n)
@@ -187,13 +212,19 @@ function inv!(B::SymArrow{T},A::HalfArrow{T},i::Integer,τ::Vector{Float64}=[1e3
     return Kb, Kz, Qout
 end # inv!
 
+"""
+    inv(A::HalfArrow, σ::Float64, τ)
+
+COMPUTES: inverse of a `SymArrow` matrix B, where B=A'*A, and A =[A.D, A.z]
+is a `HalfArrow`. Here inv(B-σ^2*I) is a `SymDPR1`.
+* τ is tolerance, defaulting to 1e3,  0.0 forces Double, 1e50 would never use it.
+* Uses `DoubleDouble` to compute ρ accurately, if needed.
+
+RETURNS: SymDPR1(D,u,ρ), Kρ, Qout
+* Kρ - condition Kρ
+* Qout = 1 / 0 - Double was / was not used
+"""
 function inv(A::HalfArrow{T}, σ::Float64, τ::Float64=1.0e3) where T
-    # COMPUTES: inverse of a SymArrow matrix B, where B=A'*A, and A =[A.D, A.z]
-    # is the HalfArrow. Here inv(B-σ^2*I) is a SymDPR1.
-    # uses DoubleDouble to compute ρ accurately, if needed.
-    # τ is tolerance, usually 1e3,  0.0 forces Double, 1e50 would never use it
-    # RETURNS: SymDPR1(D,u,ρ), Kρ, Qout
-    # Kρ - condition Kρ, Qout = 1 / 0 - Double was / was not used
 
     n=length(A.D)
     D=Array{T}(undef,n+1)
@@ -243,12 +274,18 @@ function inv(A::HalfArrow{T}, σ::Float64, τ::Float64=1.0e3) where T
     SymDPR1(D,u,ρ), Kρ, Qout
 end # inv
 
+"""
+    inv(A::halfArrow, σ::Double)
+
+COMPUTES: inverse of a `SymArrow` matrix B, where B=A'*A, and A =[A.D, A.z]
+is the `HalfArrow`. Here inv(B-σ^2*I) is `SymDPR1`.
+
+Here the shift σ is `Double` so it uses `DoubleDouble` to compute everything.
+
+RETURNS: SymDPR1(D1,u1,ρ), Qout
+* Qout = 1 on exit meaning Double was used.
+"""
 function inv(A::HalfArrow{T}, σ::Double) where T
-    # COMPUTES: inverse of a SymArrow matrix B, where B=A'*A, and A =[A.D, A.z]
-    # is the HalfArrow. Here inv(B-σ^2*I) is SymDPR1.
-    # Here shift is Double so it uses Double to compute everything
-    # RETURNS: SymDPR1(D1,u1,ρ), Qout
-    # Qout = 1 on exit meaning Double was used
 
     n=length(A.D)
     D=Array{Double}(undef,n+1)
@@ -288,7 +325,22 @@ function inv(A::HalfArrow{T}, σ::Double) where T
     SymDPR1(D₁,u₁,ρ), Qout
 end # inv
 
+"""
+    svd(A::HalfArrow, Ainv::SymArrow, k, τ)
 
+COMPUTES: k-th singular value triple of an ordered irreducible `HalfArrow`
+A = [Diagonal(A.D) A.z] with A.D > 0
+* τ=[tolb,tolz,tolnu,tolrho,tollambda] = [1e3,10.0*n,1e3,1e3,1e3]
+
+RETURNS: λ, u, v, Info
+* λ is the k-th singular value in descending order
+* u is λ's normalized left singular vector
+* v is λ's normalized right singular vector
+* Info = Sind, Kb, Kz, Kν, Kρ, Qout
+* Sind = shift index i for the k-th singular value
+* Kb, Kz, Kν, Kρ are condition numbers
+* Qout = 1 / 0 - Double was / was not used
+"""
 function  svd(A::HalfArrow{T},Ainv::SymArrow{T},k::Integer,
     τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,1e3]) where T
     # COMPUTES: k-th singular value triple of an ordered irreducible HalfArrow
@@ -455,19 +507,23 @@ function  svd(A::HalfArrow{T},Ainv::SymArrow{T},k::Integer,
     return λ,u,v,κ
 end # svd (k)
 
+"""
+    svd(A::HalfArrow,τ)
+
+COMPUTES: all singular values and singular vectors of a real `HalfArrow`
+A = [Diagonal(A.D) A.z]
+* τ=[tolb,tolz,tolnu,tolrho,tollambda] = [1e3,10.0*n,1e3,1e3,1e3]
+
+RETURNS: SVD(U, Σ, V), κ, where
+* U is the left singular vector matrix
+* Σ are singular values in decreasing order
+* V is the  right singular vector matrix
+* κ[k]=Info(Sind[k], Kb[k], Kz[k], Kν[k], Kρ[k], Qout[k])
+* Sind[k] - shift index i for the k-th eigenvalue
+* Kb, Kz, Kν, Kρ [k] - respective conditions for the k-th singular value
+* Qout[k] = 1 / 0 - Double was / was not used when computing k-th singular value
+"""
 function svd(A::HalfArrow{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,1e3]) where T
-    # COMPUTES: all singular values and singular vectors of a real HalfArrow
-    # A = [diagm(A.D) A.z]
-    # τ=[tolb,tolz,tolnu,tolrho,tollambda] = [1e3,10.0*n,1e3,1e3,1e3]
-    # RETURNS: SVD(U, Σ, V), κ
-    # where
-    # U = left singular vectors
-    # Σ = singular values in decreasing order
-    # V = right singular vectors
-    # κ[k]=Info(Sind[k], Kb[k], Kz[k], Kν[k], Kρ[k], Qout[k])
-    # Sind[k] - shift index i for the k-th eigenvalue
-    # Kb, Kz, Kν, Kρ [k] - respective conditions for the k-th singular value
-    # Qout[k] = 1 / 0 - Double was / was not used when computing k-th singular value
 
     nd=length(A.D)
     n=length(A.z)
