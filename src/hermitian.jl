@@ -32,7 +32,7 @@ function getindex(A::HermArrow{T},i::Integer,j::Integer) where T
 end # getindex
 
 # Dense version of SymArrow
-Matrix(A::HermArrow{T}) where T =[A[i,j] for i=1:size(A,1), j=1:size(A,2)]
+Base.Matrix(A::HermArrow{T}) where T =[A[i,j] for i=1:size(A,1), j=1:size(A,2)]
 transpose(A::HermArrow{T}) where T = HermArrow(A.D,conj.(A.z),A.a,A.i)
 adjoint(A::HermArrow{T}) where T = A
 
@@ -61,7 +61,7 @@ function getindex(A::HermDPR1{T},i::Integer,j::Integer) where T
 end # getindex
 
 # Dense version of SymDPR1
-Matrix(A::HermDPR1{T}) where T = [A[i,j] for i=1:size(A,1), j=1:size(A,2)]
+Base.Matrix(A::HermDPR1{T}) where T = [A[i,j] for i=1:size(A,1), j=1:size(A,2)]
 transpose(A::HermDPR1{T}) where T = HermDPR1(A.D,conj.(A.u),A.ρ)
 adjoint(A::HermDPR1{T}) where T = A
 # Generators

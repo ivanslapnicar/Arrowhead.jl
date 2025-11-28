@@ -6,7 +6,7 @@ module Arrowhead
     using Polynomials
     using Quaternions
 
-    export GenSymArrow, SymArrow, adjoint, transpose, eigen, bisect, inv, GenSymDPR1, SymDPR1, HalfArrow, GenHalfArrow, svd, tdc, rootsah, rootsWDK
+    export GenSymArrow, SymArrow, adjoint, transpose, eigen, bisect, inv, GenSymDPR1, SymDPR1, HalfArrow, GenHalfArrow, Info, svd, tdc, rootsah, rootsWDK
 
     include("DoubleDouble.jl")
     include("arrowhead1.jl")
