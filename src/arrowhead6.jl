@@ -504,7 +504,6 @@ function  svd(A::HalfArrow{T},Ainv::SymArrow{T},k::Integer,
                     u[n]=A.z[n]*v[n]/λ
                 end
             end
-            end
         end
     end
     # Return this
