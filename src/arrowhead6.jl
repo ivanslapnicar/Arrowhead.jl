@@ -499,6 +499,11 @@ function  svd(A::HalfArrow{T},Ainv::SymArrow{T},k::Integer,
                 # componentwise accurate
                 ν₁=sum(v.^2 .*Ainv.D)+Ainv.r*sum(v.*Ainv.u)^2;
                 λ=sqrt(1.0/ν₁)
+                # Added
+				if length(A.z)==n
+                    u[n]=A.z[n]*v[n]/λ
+                end
+            end
             end
         end
     end
