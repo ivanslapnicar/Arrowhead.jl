@@ -585,65 +585,64 @@ function svd(A::HalfArrow{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,
             end
             # return U,Σ,V,Sind,Kb,Kz,Kν,Kρ,Qout
         end
+    end
+    if n0==nd
+        zxv=[zx;n0+1]
     else
-        if n0==nd
-            zxv=[zx;n0+1]
-        else
-            zx=zxv=[zx;n0]
-            z=[z;A.z[n0]]
-        end
-        n=length(z)
+        zx=zxv=[zx;n0]
+        z=[z;A.z[n0]]
+    end
+    n=length(z)
 
-        #  Test for deflation in D
-        g=D[1:n-2]-D[2:n-1]
-        # Can play with inexact deflation
-        # g0=find(abs(g)<eps)
-        # gx=find(abs(g)>=eps)
-        # Only exact deflation !!
-        g0=findall(iszero,g)
-        gx=findall(!iszero,g)
-        if !isempty(g0)
-            # Deflation
-            Dgx=D[gx]; zgx=z[gx]
-            lg0=length(g0)
-            R=Array{Tuple{LinearAlgebra.Givens{Float64},Float64}}(undef,lg0)
-            for l=lg0:-1:1
-                R[l]=givens(z[g0[l]],z[g0[l]+1],zx[g0[l]],zx[g0[l]+1])
-                z[g0[l]]=R[l][2]; z[g0[l]+1]=0.0
-                # A_mul_Bc!(U,R) # multiply R'*U later
-                Σ[zx[g0[l]+1]]=D[g0[l]+1]
-            end
-            # remains
-            gx=[0;gx].+1
-            nn=length(gx)
-            zxx=zx[[gx;n]]
-            if n0==nd
-                zxxv=[zxx,n0+1]
-            else
-                zxx=zxxv=[zxx,n0]
-                # z=[z;A.z[n0]]
-            end
-            Axx=HalfArrow(D[gx],z[gx])
-            Bxx=[SymArrow(Vector{T}(undef,nn),Vector{T}(undef,nn),one(T),nn+1) for i=1:Threads.nthreads()]
-            # Threads.@threads
-            for k=1:nn+1
-                tid=Threads.threadid()
-                Σ[zxx[k]],U[zxx,zxx[k]],V[zxxv,zxx[k]],κ[zxx[k]]=svd(Axx,Bxx[tid],k)
-            end
-            for l=1:lg0
-                # U=R[l][1]'*U
-                lmul!(R[l][1],U)
-            end
+    #  Test for deflation in D
+    g=D[1:n-2]-D[2:n-1]
+    # Can play with inexact deflation
+    # g0=find(abs(g)<eps)
+    # gx=find(abs(g)>=eps)
+    # Only exact deflation !!
+    g0=findall(iszero,g)
+    gx=findall(!iszero,g)
+    if !isempty(g0)
+        # Deflation
+        Dgx=D[gx]; zgx=z[gx]
+        lg0=length(g0)
+        R=Array{Tuple{LinearAlgebra.Givens{Float64},Float64}}(undef,lg0)
+        for l=lg0:-1:1
+            R[l]=givens(z[g0[l]],z[g0[l]+1],zx[g0[l]],zx[g0[l]+1])
+            z[g0[l]]=R[l][2]; z[g0[l]+1]=0.0
+            # A_mul_Bc!(U,R) # multiply R'*U later
+            Σ[zx[g0[l]+1]]=D[g0[l]+1]
+        end
+        # remains
+        gx=[0;gx].+1
+        nn=length(gx)
+        zxx=zx[[gx;n]]
+        if n0==nd
+            zxxv=[zxx,n0+1]
         else
-            # No deflation in D
-            Ax=HalfArrow(D,z)
-            Bx=[SymArrow(Vector{T}(undef,n),Vector{T}(undef,n),one(T),n+1) for i=1:Threads.nthreads()]
-            # Threads.@threads
-            for k=1:n
-                tid=Threads.threadid()
-                Σ[zx[k]],U[zx,zx[k]],V[zxv,zx[k]],κ[zx[k]]=svd(Ax,Bx[tid],k)
-                V[zxv[1:end-1],zx[k]]=V[zxv[1:end-1],zx[k]].*signD[zxv[1:end-1]]
-            end
+            zxx=zxxv=[zxx,n0]
+            # z=[z;A.z[n0]]
+        end
+        Axx=HalfArrow(D[gx],z[gx])
+        Bxx=[SymArrow(Vector{T}(undef,nn),Vector{T}(undef,nn),one(T),nn+1) for i=1:Threads.nthreads()]
+        # Threads.@threads
+        for k=1:nn+1
+            tid=Threads.threadid()
+            Σ[zxx[k]],U[zxx,zxx[k]],V[zxxv,zxx[k]],κ[zxx[k]]=svd(Axx,Bxx[tid],k)
+        end
+        for l=1:lg0
+            # U=R[l][1]'*U
+            lmul!(R[l][1],U)
+        end
+    else
+        # No deflation in D
+        Ax=HalfArrow(D,z)
+        Bx=[SymArrow(Vector{T}(undef,n),Vector{T}(undef,n),one(T),n+1) for i=1:Threads.nthreads()]
+        # Threads.@threads
+        for k=1:n
+            tid=Threads.threadid()
+            Σ[zx[k]],U[zx,zx[k]],V[zxv,zx[k]],κ[zx[k]]=svd(Ax,Bx[tid],k)
+            V[zxv[1:end-1],zx[k]]=V[zxv[1:end-1],zx[k]].*signD[zxv[1:end-1]]
         end
     end
     # back premutation of vectors
