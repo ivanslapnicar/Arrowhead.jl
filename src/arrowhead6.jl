@@ -632,7 +632,7 @@ function svd(A::HalfArrow{T}, τ::Vector{Float64}=[1e3,10.0*length(A.D),1e3,1e3,
         end
         for l=1:lg0
             # U=R[l][1]'*U
-            lmul!(R[l][1],U)
+            lmul!(R[l][1]',U)
         end
     else
         # No deflation in D
